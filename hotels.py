@@ -1,5 +1,6 @@
 from fastapi import Query, Body, Path, APIRouter
 
+from dependecy import PaginationDep
 from schemas.hotels import Hotel, HotelPatch
 
 router = APIRouter(prefix="/hotels", tags=["Отели"])
@@ -20,19 +21,11 @@ hotels = [
 
 @router.get("")
 def get_hotels(
+        pag: PaginationDep,
         id_: int | None = Query(None, description="ID"),
         title: str | None = Query(None, description="Название отеля"),
-        page: int | None = Query(1, description="какая страницы"),
-        per_page: int | None = Query(3, description="Сколько в странице"),
+
 ):
-    total = len(hotels)
-    if 0 >= per_page or per_page > total:
-        return {f"per_page must be from 0 to {total}"}
-    total_pages = (total / per_page).__ceil__()
-    if  not 0 < page <= total_pages:
-        return {"status": f"page {page} does not exist"}
-    start = per_page * page - per_page
-    end = per_page * page
     hotels_ = [
         hotel
         for hotel in hotels
@@ -41,9 +34,19 @@ def get_hotels(
            and id_
            and hotel["id"] == id_
     ]
-    if not hotels_:
-        return hotels[start:end]
-    return hotels_[start:end]
+    if hotels_:
+        return hotels_
+
+    total = len(hotels)
+    if 0 >= pag.per_page or pag.per_page > total:
+        return {f"per_page must be from 0 to {total}"}
+    total_pages = (total / pag.per_page).__ceil__()
+    if not 0 < pag.page <= total_pages:
+        return {"status": f"page {pag.page} does not exist"}
+    start = pag.per_page * pag.page - pag.per_page
+    end = pag.per_page * pag.page
+
+    return hotels[start:end]
 
 
 @router.post("")
