@@ -1,3 +1,6 @@
+import asyncio
+import time
+
 import uvicorn
 from fastapi import FastAPI, Query, Body, Path
 
@@ -7,6 +10,18 @@ hotels = [
     {"id": 1, "title": "sochi", "name": "hotel"},
     {"id": 2, "title": "дубай", "name": "motel"},
 ]
+
+@app.get('/sync/{id}')
+def sync_func(id: int):
+    print(f'sync {id} начал: {time.time():.2f}')
+    time.sleep(3)
+    print(f'sync {id} закончил: {time.time():.2f}')
+
+@app.get("/async/{id}")
+async def async_func(id: int):
+    print(f'async {id} начал: {time.time():.2f}')
+    await asyncio.sleep(3)
+    print(f'async {id} закончил: {time.time():.2f}')
 
 
 @app.get("/hotels")
@@ -76,7 +91,7 @@ def upd_hotel(hotel_id: int = Path(), title: str = Body(), name: str = Body()):
 
 
 if __name__ == "__main__":
-    uvicorn.run("main:app", reload=True)
+    uvicorn.run("main:app", reload=False, workers=None)
 
 # uvicorn main:app
 # fastapi dev main.py
