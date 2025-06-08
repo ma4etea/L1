@@ -18,18 +18,18 @@ async def get(i: int, endpoint: str):
 async def main():
     global sync_time, async_time
 
-    begin_sync = time.time()
-    await asyncio.gather(
-        *[get(i, 'sync') for i in range(99)],
-    )
-    end_sync = time.time()
-    sync_time = f'{(end_sync - begin_sync):.2f}'
+    # begin_sync = time.time()
+    # await asyncio.gather(
+    #     *[get(i, 'sync') for i in range(99)],
+    # )
+    # end_sync = time.time()
+    # sync_time = f'{(end_sync - begin_sync):.2f}'
 
 
 
     begin_async = time.time()
     await asyncio.gather(
-        *[get(i, 'async') for i in range(99)],
+        *[get(i, 'async') for i in range(9999)],
     )
     end_async = time.time()
     async_time = f'{(end_async - begin_async):.2f}'
