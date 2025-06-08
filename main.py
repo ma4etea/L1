@@ -50,23 +50,28 @@ def edit_hotel(
     title: str | None = Body(None),
     name: str | None = Body(None),
 ):
-    hotel = [hotel for hotel in hotels if hotel["id"] == hotel_id]
+    global hotels
+    hotels_ = [hotel for hotel in hotels if hotel["id"] == hotel_id]
+    hotel = hotels_[0]
     if hotel:
         if title:
-            hotel[0]["title"] = title
+            hotel["title"] = title
         if name:
-            hotel[0]["name"] = name
-        return hotel
+            hotel["name"] = name
+        return [hotel for hotel in hotels if hotel["id"] == hotel_id]
     return {"status": "error"}
 
 
-@app.put("/hotels/{hotel_id}")
-def edit_hotel(hotel_id: int = Path(), title: str = Body(), name: str = Body()):
-    hotel = [hotel for hotel in hotels if hotel["id"] == hotel_id]
+@app.put("/hotels/{hotel_id}", summary="Изменение отеля", description='Только полное обновление')
+def upd_hotel(hotel_id: int = Path(), title: str = Body(), name: str = Body()):
+    global hotels
+    hotels_ = [hotel for hotel in hotels if hotel["id"] == hotel_id]
+    hotel = hotels_[0]
+    print(hotel is hotels[hotel_id-1])
     if hotel:
-        hotel[0]["title"] = title
-        hotel[0]["name"] = name
-        return hotel
+        hotel["title"] = title
+        hotel["name"] = name
+        return [hotel for hotel in hotels if hotel["id"] == hotel_id]
     return {"status": "error"}
 
 
