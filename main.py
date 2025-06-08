@@ -8,7 +8,7 @@ app.include_router(hotels_router)
 app.include_router(load_test)
 
 if __name__ == "__main__":
-    uvicorn.run("main:app", reload=True, workers=None)
+    uvicorn.run("main:app", reload=False, workers=None)
 
 # uvicorn main:app
 # fastapi dev main.py
