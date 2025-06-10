@@ -8,6 +8,7 @@ from alembic import context
 from src.config import settings
 from src.database import BaseModel
 from src.models.hotels import HotelsOrm
+from src.models.rooms import RoomsOrm
 
 # $env:PYTHONPATH="."; alembic revision --autogenerate -m init
 # this is the Alembic Config object, which provides
