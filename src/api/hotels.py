@@ -1,5 +1,5 @@
 from fastapi import Query, Body, Path, APIRouter
-from sqlalchemy import Insert, literal, select, Select
+from sqlalchemy import Insert, literal, select, Select, func
 from sqlalchemy.ext.asyncio import async_sessionmaker, AsyncSession
 
 from src.api.dependecy import PaginationDep
@@ -29,7 +29,7 @@ async def get_hotels(
         query = query.where(HotelsOrm.title.ilike(f'%{title.strip()}%'))
 
     if location:
-        query = query.where(HotelsOrm.location.ilike(f'%{location.strip()}%'))
+        query = query.where(func.lower(HotelsOrm.location).contains(location.strip().lower()))
 
     print(query.compile(compile_kwargs={"literal_binds": True}))
 
