@@ -25,8 +25,6 @@ async def get_hotels(
     async with new_session() as session:
         return await HotelsRepository(session).get_all(title, location, offset, limit)
 
-
-
     # async with new_session() as session:
     #     session: AsyncSession
     #     result = await session.execute(query)
@@ -57,13 +55,11 @@ async def add_hotel(
 
 
 @router.delete("/{hotel_id}")
-def delete_hotel(hotel_id: int = Path()):
-    global hotels
-    if len(hotels) < 1 or hotel_id < 1:
-        return {"status": "error"}
-    hotels = [hotel for hotel in hotels if hotel["id"] != hotel_id]
-
-    return {"status": "delete"}
+async def delete_hotel(hotel_id: int = Path()):
+    async with new_session() as session:
+        await HotelsRepository(session).delete(id=hotel_id)
+        await session.commit()
+        return {"status": "OK"}
 
 
 @router.patch("/{hotel_id}")
@@ -85,16 +81,12 @@ def edit_hotel(hotel_id: int, hotel_data: HotelPatch):
     summary="Изменение отеля",
     description="Только полное обновление",
 )
-def upd_hotel(
+async def upd_hotel(
         hotel_id: int,
         hotel_data: Hotel,
 ):
-    global hotels
-    hotels_ = [hotel for hotel in hotels if hotel["id"] == hotel_id]
-    hotel = hotels_[0]
-    print(hotel is hotels[hotel_id - 1])
-    if hotel:
-        hotel["title"] = hotel_data.title
-        hotel["name"] = hotel_data.name
-        return [hotel for hotel in hotels if hotel["id"] == hotel_id]
-    return {"status": "error"}
+    async with new_session() as session:
+        await HotelsRepository(session).edit(hotel_data, id=hotel_id)
+        await session.commit()
+        return {"status": "OK"}
+
