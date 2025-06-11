@@ -50,12 +50,10 @@ async def add_hotel(
 ):
     async with new_session() as session:
         session: AsyncSession
-        add_hotel_stmt = Insert(HotelsOrm).values(**hotel_data.model_dump())
-        print(add_hotel_stmt.compile(bind=engine, compile_kwargs={"literal_binds": True}))
-        await session.execute(add_hotel_stmt)
+        hotel = await HotelsRepository(session).add(hotel_data)
         await session.commit()
 
-    return {"status": "ok"}
+    return {"status": "ok", "data": hotel}
 
 
 @router.delete("/{hotel_id}")
