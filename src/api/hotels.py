@@ -5,6 +5,7 @@ from sqlalchemy.ext.asyncio import async_sessionmaker, AsyncSession
 from src.api.dependecy import PaginationDep
 from src.database import new_session, engine
 from src.models.hotels import HotelsOrm
+from src.repositories.hotels import HotelsRepository
 from src.schemas.hotels import Hotel, HotelPatch
 
 router = APIRouter(prefix="/hotels", tags=["Отели"])
@@ -17,54 +18,19 @@ async def get_hotels(
         location: str | None = Query(None, description="Локация"),
 
 ):
-
     per_page = pag.per_page or 3
-
     offset = per_page * pag.page - per_page
     limit = per_page
 
-    query = select(HotelsOrm)
-
-    if title:
-        query = query.where(HotelsOrm.title.ilike(f'%{title.strip()}%'))
-
-    if location:
-        query = query.where(func.lower(HotelsOrm.location).contains(location.strip().lower()))
-
-    print(query.compile(compile_kwargs={"literal_binds": True}))
-
-    query = (
-        query
-        .limit(limit=limit)
-        .offset(offset=offset)
-    )
-
     async with new_session() as session:
-        session: AsyncSession
-        result = await session.execute(query)
-        return result.scalars().all()
+        return await HotelsRepository(session).get_all(title, location, offset, limit)
 
-    # hotels_ = [
-    #     hotel
-    #     for hotel in hotels
-    #     if title
-    #        and hotel["title"].lower() == title.lower()
-    #        and id_
-    #        and hotel["id"] == id_
-    # ]
-    # if hotels_:
-    #     return hotels_
-    #
-    # total = len(hotels)
-    # if 0 >= pag.per_page or pag.per_page > total:
-    #     return {f"per_page must be from 0 to {total}"}
-    # total_pages = (total / pag.per_page).__ceil__()
-    # if not 0 < pag.page <= total_pages:
-    #     return {"status": f"page {pag.page} does not exist"}
-    # start = pag.per_page * pag.page - pag.per_page
-    # end = pag.per_page * pag.page
-    #
-    # return hotels[start:end]
+
+
+    # async with new_session() as session:
+    #     session: AsyncSession
+    #     result = await session.execute(query)
+    #     return result.scalars().all()
 
 
 @router.post("")
@@ -82,7 +48,6 @@ async def add_hotel(
             }
         )
 ):
-
     async with new_session() as session:
         session: AsyncSession
         add_hotel_stmt = Insert(HotelsOrm).values(**hotel_data.model_dump())
