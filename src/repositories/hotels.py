@@ -1,5 +1,5 @@
 from sqlalchemy import func, select, Insert
-
+from pydantic import BaseModel as BaseSchema
 from src.database import engine
 from src.models.hotels import HotelsOrm
 from src.repositories.base import BaseRepository
@@ -28,8 +28,8 @@ class HotelsRepository(BaseRepository):
         result = await self.session.execute(query)
         return result.scalars().all()
 
-    async def add(self, value):
-        add_hotel_stmt = Insert(self.model).values(**value.model_dump()).returning(self.model)
+    async def add(self, data: BaseSchema):
+        add_hotel_stmt = Insert(self.model).values(**data.model_dump()).returning(self.model)
         print(add_hotel_stmt.compile(bind=engine, compile_kwargs={"literal_binds": True}))
         result = await self.session.execute(add_hotel_stmt)
-        return result.scalars().one_or_none()
+        return result.scalars().one()
