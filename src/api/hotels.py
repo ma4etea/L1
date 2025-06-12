@@ -1,4 +1,4 @@
-from fastapi import Query, Body, Path, APIRouter
+from fastapi import Query, Body, Path, APIRouter, HTTPException
 from sqlalchemy import Insert, literal, select, Select, func
 from sqlalchemy.ext.asyncio import async_sessionmaker, AsyncSession
 
@@ -83,3 +83,38 @@ async def upd_hotel(
         await HotelsRepository(session).edit(hotel_data, id=hotel_id)
         await session.commit()
         return {"status": "OK"}
+
+
+
+@router.get("/{hotel_id}")
+async def get_hotel(
+        hotel_id: int = Path()
+):
+    async with new_session() as session:
+        result = await HotelsRepository(session).get_one_none(id=hotel_id)
+        if not result:
+            raise HTTPException(status_code=404)
+        return result
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
