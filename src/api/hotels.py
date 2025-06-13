@@ -6,7 +6,7 @@ from src.api.dependecy import PaginationDep
 from src.database import new_session, engine
 from src.models.hotels import HotelsOrm
 from src.repositories.hotels import HotelsRepository
-from src.schemas.hotels import Hotel, HotelPatch
+from src.schemas.hotels import Hotel, HotelPatch, HotelAdd
 
 router = APIRouter(prefix="/hotels", tags=["Отели"])
 
@@ -33,7 +33,7 @@ async def get_hotels(
 
 @router.post("")
 async def add_hotel(
-        hotel_data: Hotel = Body(
+        hotel_data: HotelAdd = Body(
             openapi_examples={
                 "1": {
                     "summary": "Дубай",
@@ -77,7 +77,7 @@ async def edit_hotel(hotel_id: int, hotel_data: HotelPatch):
 )
 async def upd_hotel(
         hotel_id: int,
-        hotel_data: Hotel,
+        hotel_data: HotelAdd,
 ):
     async with new_session() as session:
         await HotelsRepository(session).edit(hotel_data, id=hotel_id)

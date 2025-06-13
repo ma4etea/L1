@@ -9,8 +9,9 @@ from src.config import settings
 from src.database import BaseModel
 from src.models.hotels import HotelsOrm
 from src.models.rooms import RoomsOrm
+from src.models.users import UsersOrm
 
-# $env:PYTHONPATH="."; alembic revision --autogenerate -m init
+#  $env:pythonpath="."; alembic revision --autogenerate -m init
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
 config = context.config
