@@ -51,4 +51,10 @@ async def get_me(
     return user
 
 
-
+@router.post("/logout")
+async def logout(
+        response: Response,
+        _: AccessDep  # new_case переменная мусорка по конвенции python
+):
+    response.delete_cookie("access_token")
+    return {"status": "ok"}
