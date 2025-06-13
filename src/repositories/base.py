@@ -1,9 +1,10 @@
-from pydantic.v1.schema import schema
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 from pydantic import BaseModel as BaseSchema
 from src.database import engine
 from fastapi import HTTPException
 from sqlalchemy import select, Insert, delete, update
+
 
 
 class BaseRepository:
@@ -31,8 +32,17 @@ class BaseRepository:
     async def add(self, data: BaseSchema):
         add_hotel_stmt = Insert(self.model).values(**data.model_dump()).returning(self.model)
         print(add_hotel_stmt.compile(bind=engine, compile_kwargs={"literal_binds": True}))
-        result = await self.session.execute(add_hotel_stmt)
-        model = result.scalars().one()
+
+        try:
+            result = await self.session.execute(add_hotel_stmt)
+        except IntegrityError as e:
+            print('UniqueViolationError' in str(e.orig), e.orig)
+            if "users_email_key" in str(e.orig):
+                raise HTTPException(status_code=409)
+            raise HTTPException(status_code=500)
+
+        model = result.scalars().one_or_none()
+
         return self.schema.model_validate(model, from_attributes=True)
 
     async def edit(self, data: BaseSchema,exclude_unset = False , **filter_by):
