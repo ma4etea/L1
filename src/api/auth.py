@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException, Response
 
-from src.api.dependecy import AccessDep, DBDep
+from src.api.dependecy import DepAccess, DepDB
 from src.schemas.users import UserReg, UserAdd
 from src.services.auth import Authservice
 
@@ -8,7 +8,7 @@ router = APIRouter(prefix="/auth", tags=["Авторизация"])
 
 
 @router.post("/register")
-async def register_user(db: DBDep, data: UserReg):
+async def register_user(db: DepDB, data: UserReg):
     hashed_password = Authservice().pwd_context.hash(data.password)
     new_data_user = UserAdd(email=data.email, hashed_password=hashed_password)
 
@@ -18,7 +18,7 @@ async def register_user(db: DBDep, data: UserReg):
 
 
 @router.post("/login")
-async def login_user(db: DBDep, data: UserReg, response: Response):
+async def login_user(db: DepDB, data: UserReg, response: Response):
     user = await db.auth.get_user_with_hashed_password(email=data.email)
     if not user:
         raise HTTPException(status_code=401, detail="Пользователь не зарегистрирован")
@@ -34,7 +34,7 @@ async def login_user(db: DBDep, data: UserReg, response: Response):
 
 
 @router.get("/me")
-async def get_me(db: DBDep, user_id: AccessDep):
+async def get_me(db: DepDB, user_id: DepAccess):
     user = await db.auth.get_one_none(id=user_id)
     if not user:
         raise HTTPException(status_code=404)
@@ -44,9 +44,9 @@ async def get_me(db: DBDep, user_id: AccessDep):
 
 @router.post("/logout")
 async def logout(
-    db: DBDep,
+    db: DepDB,
     response: Response,
-    _: AccessDep,  # new_case переменная мусорка по конвенции python
+    _: DepAccess,  # new_case переменная мусорка по конвенции python
 ):
     response.delete_cookie("access_token")
     return {"status": "ok"}

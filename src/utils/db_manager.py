@@ -1,11 +1,12 @@
 from sqlalchemy.ext.asyncio import async_sessionmaker
 from src.repositories.auth import AuthRepository
+from src.repositories.booking import BookingsRepository
 from src.repositories.hotels import HotelsRepository
 from src.repositories.rooms import RoomsRepository
 
 
 
-
+# new_case асинхронный контекстный менеджер для обращения к базе данных
 class DBManager:
     def __init__(self, session_factory: async_sessionmaker):
         self.session_factory = session_factory
@@ -17,6 +18,7 @@ class DBManager:
         self.auth = AuthRepository(self.session)
         self.hotels = HotelsRepository(self.session)
         self.rooms = RoomsRepository(self.session)
+        self.bookings = BookingsRepository(self.session)
         return self
 
     async def __aexit__(self, *args):

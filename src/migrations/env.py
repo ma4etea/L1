@@ -10,6 +10,7 @@ from src.database import BaseModel
 from src.models.hotels import HotelsOrm
 from src.models.rooms import RoomsOrm
 from src.models.users import UsersOrm
+from src.models.bookings import BookingsOrm
 
 #  $env:pythonpath="."; alembic revision --autogenerate -m init
 # this is the Alembic Config object, which provides

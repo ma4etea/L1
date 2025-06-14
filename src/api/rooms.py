@@ -1,12 +1,12 @@
 from fastapi import APIRouter, Path, HTTPException
-from src.api.dependecy import AccessDep, DBDep
+from src.api.dependecy import DepAccess, DepDB
 from src.schemas.room import AddRoom, AddRoomToDb, EditRoom
 
 router = APIRouter(prefix="/hotels", tags=["Номера"])
 
 
 @router.get("/{hotel_id}/rooms")
-async def get_rooms(_: AccessDep, db: DBDep, hotel_id: int = Path()):
+async def get_rooms(_: DepAccess, db: DepDB, hotel_id: int = Path()):
     return {
         "status": "OK",
         "data": await db.rooms.get_all(hotel_id=hotel_id),
@@ -15,8 +15,8 @@ async def get_rooms(_: AccessDep, db: DBDep, hotel_id: int = Path()):
 
 @router.get("/{hotel_id}/rooms/{room_id}")
 async def get_room(
-    _: AccessDep,
-    db: DBDep,
+    _: DepAccess,
+    db: DepDB,
     hotel_id: int = Path(),
     room_id: int = Path(),
 ):
@@ -27,7 +27,7 @@ async def get_room(
 
 
 @router.post("/{hotel_id}/rooms")
-async def add_room(_: AccessDep, db: DBDep, room_data: AddRoom, hotel_id: int = Path()):
+async def add_room(_: DepAccess, db: DepDB, room_data: AddRoom, hotel_id: int = Path()):
     new_room_data = AddRoomToDb(**room_data.model_dump(), hotel_id=hotel_id)
 
     room = await db.rooms.add(new_room_data)
@@ -41,8 +41,8 @@ async def add_room(_: AccessDep, db: DBDep, room_data: AddRoom, hotel_id: int = 
 
 @router.delete("/{hotel_id}/rooms/{room_id}")
 async def remove_room(
-    _: AccessDep,
-    db: DBDep,
+    _: DepAccess,
+    db: DepDB,
     hotel_id: int = Path(),
     room_id: int = Path(),
 ):
@@ -54,8 +54,8 @@ async def remove_room(
 
 @router.put("/{hotel_id}/rooms/{room_id}")
 async def update_room(
-    db: DBDep,
-    _: AccessDep,
+    db: DepDB,
+    _: DepAccess,
     room_data: AddRoom,
     hotel_id: int = Path(),
     room_id: int = Path(),
@@ -68,8 +68,8 @@ async def update_room(
 
 @router.patch("/{hotel_id}/rooms/{room_id}")
 async def edit_room(
-    _: AccessDep,
-    db: DBDep,
+    _: DepAccess,
+    db: DepDB,
     room_data: EditRoom,
     hotel_id: int = Path(),
     room_id: int = Path(),

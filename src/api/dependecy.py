@@ -12,7 +12,7 @@ class Pagination(BaseModel):
     page: Annotated[int | None, Query(1, ge=1, description="какая страницы")]
     per_page: Annotated[int | None,  Query(None, ge=1, le=50, description="Сколько в странице")]
 
-PaginationDep = Annotated[Pagination, Depends()]
+DepPagination = Annotated[Pagination, Depends()]
 
 def get_access_token(request: Request) -> str:
     cookies = request.cookies  # new_case получить куки
@@ -28,7 +28,7 @@ def get_payload_token (access_token: str = Depends(get_access_token)) -> int:
         raise HTTPException(status_code=404)
     return user_id
 
-AccessDep = Annotated[int, Depends(get_payload_token)]
+DepAccess = Annotated[int, Depends(get_payload_token)]
 
 def get_db():
     return DBManager(new_session)
@@ -38,4 +38,4 @@ async def get_db_manager():
         yield db
 
 
-DBDep = Annotated[DBManager, Depends(get_db_manager)]
+DepDB = Annotated[DBManager, Depends(get_db_manager)]
