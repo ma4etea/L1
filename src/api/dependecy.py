@@ -10,7 +10,7 @@ from src.utils.db_manager import DBManager
 
 class Pagination(BaseModel):
     page: Annotated[int | None, Query(1, ge=1, description="какая страницы")]
-    per_page: Annotated[int | None,  Query(None, ge=1, le=50, description="Сколько в странице")]
+    per_page: Annotated[int | None,  Query(3, ge=1, le=50, description="Сколько в странице")]
 
 DepPagination = Annotated[Pagination, Depends()]
 
