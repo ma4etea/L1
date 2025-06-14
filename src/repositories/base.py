@@ -6,7 +6,6 @@ from fastapi import HTTPException
 from sqlalchemy import select, Insert, delete, update
 
 
-
 class BaseRepository:
     model = None
     schema: BaseSchema = None
@@ -14,12 +13,13 @@ class BaseRepository:
     def __init__(self, session: AsyncSession):
         self.session = session
 
-
     async def get_all(self, *args, **kwargs):
-        query =  select(self.model)
+        query = select(self.model).filter_by(**kwargs)
         result = await self.session.execute(query)
         models = result.scalars().all()
-        return [self.schema.model_validate(model, from_attributes=True) for model in models]
+        return [
+            self.schema.model_validate(model, from_attributes=True) for model in models
+        ]
 
     async def get_one_none(self, **filter_by):
         query = select(self.model).filter_by(**filter_by)
@@ -30,13 +30,17 @@ class BaseRepository:
         return self.schema.model_validate(model, from_attributes=True)
 
     async def add(self, data: BaseSchema):
-        add_hotel_stmt = Insert(self.model).values(**data.model_dump()).returning(self.model)
-        print(add_hotel_stmt.compile(bind=engine, compile_kwargs={"literal_binds": True}))
+        add_hotel_stmt = (
+            Insert(self.model).values(**data.model_dump()).returning(self.model)
+        )
+        print(
+            add_hotel_stmt.compile(bind=engine, compile_kwargs={"literal_binds": True})
+        )
 
         try:
             result = await self.session.execute(add_hotel_stmt)
         except IntegrityError as e:
-            print('UniqueViolationError' in str(e.orig), e.orig)
+            print("UniqueViolationError" in str(e.orig), e.orig)
             if "users_email_key" in str(e.orig):
                 raise HTTPException(status_code=409)
             raise HTTPException(status_code=500)
@@ -45,7 +49,7 @@ class BaseRepository:
 
         return self.schema.model_validate(model, from_attributes=True)
 
-    async def edit(self, data: BaseSchema,exclude_unset = False , **filter_by):
+    async def edit(self, data: BaseSchema, exclude_unset=False, **filter_by):
 
         query = select(self.model).filter_by(**filter_by)
         result = await self.session.execute(query)
@@ -55,7 +59,11 @@ class BaseRepository:
         if len(result_orm) < 1:
             raise HTTPException(status_code=404)
 
-        stmt = update(self.model).filter_by(**filter_by).values(**data.model_dump(exclude_unset=exclude_unset))
+        stmt = (
+            update(self.model)
+            .filter_by(**filter_by)
+            .values(**data.model_dump(exclude_unset=exclude_unset))
+        )
         print(stmt.compile(bind=engine, compile_kwargs={"literal_binds": True}))
         await self.session.execute(stmt)
 
