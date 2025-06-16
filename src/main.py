@@ -11,15 +11,14 @@ from src.api.hotels import router as hotels_router
 from src.api.auth import router as auth_router
 from src.api.rooms import router as rooms_router
 from src.api.booking import router as booking_router
-from _cors_helper.load_test import router as load_test
-from src.config import settings
+# from _cors_helper.load_test import router as load_test
 
 app = FastAPI()
 app.include_router(auth_router)
 app.include_router(rooms_router)
 app.include_router(booking_router)
 app.include_router(hotels_router)
-app.include_router(load_test)
+# app.include_router(load_test)
 
 
 

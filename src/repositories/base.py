@@ -14,13 +14,16 @@ class BaseRepository:
         self.session = session
 
     async def get_all(self, offset: int = None, limit: int = None, *args, **kwargs):
-        query = select(self.model).filter_by(**kwargs)
+        query = select(self.model).filter(*args).filter_by(**kwargs)
         if offset:
             query = query.offset(offset=offset)
         if limit:
             query = query.limit(limit=limit)
+
+        print(query.compile(compile_kwargs={"literal_binds": True}))
         result = await self.session.execute(query)
         models = result.scalars().all()
+
         return [
             self.schema.model_validate(model, from_attributes=True) for model in models
         ]
