@@ -1,3 +1,5 @@
+from datetime import date
+
 from fastapi import Query, Body, Path, APIRouter, HTTPException
 from sqlalchemy import Insert, literal, select, Select, func
 from sqlalchemy.ext.asyncio import async_sessionmaker, AsyncSession
@@ -12,8 +14,10 @@ router = APIRouter(prefix="/hotels", tags=["Отели"])
 
 
 @router.get("")
-async def get_hotels(
+async def get_available_hotels(
         db: DepDB,
+        date_from: date,
+        date_to: date,
         pag: DepPagination,
         title: str | None = Query(None, description="Название отеля"),
         location: str | None = Query(None, description="Локация"),
@@ -22,7 +26,7 @@ async def get_hotels(
     offset = per_page * pag.page - per_page
     limit = per_page
 
-    return await db.hotels.get_all(title, location, offset, limit)
+    return await db.hotels.get_available_hotels(title, location, offset, limit, date_from=date_from, date_to=date_to)
 
 
 @router.post("")

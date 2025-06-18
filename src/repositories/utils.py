@@ -33,6 +33,7 @@ def get_available_rooms_ids(offset: int, limit: int, date_from: date, date_to: d
     rooms_available = (
         select(
             RoomsOrm.id,
+            RoomsOrm.hotel_id,
             RoomsOrm.title,
             RoomsOrm.description,
             RoomsOrm.price,
@@ -55,10 +56,11 @@ def get_available_rooms_ids(offset: int, limit: int, date_from: date, date_to: d
     )
     if hotel_id:
         rooms_ids_from_hotel = rooms_ids_from_hotel.filter_by(hotel_id=hotel_id)
-    rooms_ids_from_hotel = rooms_ids_from_hotel.subquery("rooms_ids_from_hotel")
+        rooms_ids_from_hotel = rooms_ids_from_hotel.subquery("rooms_ids_from_hotel")
 
     rooms_ids = (
         select(rooms_available.c.room_id)
+        .select_from(rooms_available)
         .filter(rooms_available.c.available > 0, rooms_available.c.id.in_(rooms_ids_from_hotel))
         .offset(offset)
         .limit(limit)
