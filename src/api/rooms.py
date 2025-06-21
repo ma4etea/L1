@@ -121,7 +121,18 @@ async def edit_room(
     hotel_id: int = Path(),
     room_id: int = Path(),
 ):
-    room = await db.rooms.edit_room(room_data, exclude_unset=True, hotel_id=hotel_id, room_id=room_id)
-    await db.commit()
+    start_data = datetime.now()
+    if room_data.facilities_ids is not None:
+        await db.rooms_facilities.set_facilities_to_room(room_id, room_data.facilities_ids)
 
-    return {"status": "OK","data": room}
+    new_room_data_dict = room_data.model_dump(exclude={"facilities_ids"}, exclude_unset=True)
+
+    if new_room_data_dict:
+        new_room_data = EditRoom(**new_room_data_dict)
+        room = await db.rooms.edit(new_room_data, id=room_id, exclude_unset=True)
+    else:
+        room = await db.rooms.get_one_none(id=room_id)
+    await db.commit()
+    end_data = datetime.now()
+    print(end_data - start_data)
+    return {"status": "OK", "data": room}
