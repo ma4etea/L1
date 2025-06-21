@@ -11,3 +11,8 @@ class AddFacility(BaseSchema):
 class Facility(BaseSchema):
     id: int
     title: str
+
+
+class AddRoomsFacilities(BaseSchema):
+    room_id: int
+    facility_id: int

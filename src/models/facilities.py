@@ -11,7 +11,7 @@ class FacilitiesOrm(BaseModel):
     id: Mapped[int] = mapped_column(primary_key=True)
     title: Mapped[str] = mapped_column(String(100))
 
-class RoomFacilities(BaseModel):
+class RoomsFacilitiesORM(BaseModel):
     __tablename__ = "rooms_facilities"
 
     id: Mapped[int] = mapped_column(primary_key=True)

@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Path, HTTPException
 from src.api.dependecy import DepAccess, DepDB
+from src.schemas.facilities import AddRoomsFacilities
 from src.schemas.room import AddRoom, AddRoomToDb, EditRoom
 
 router = APIRouter(prefix="/hotels", tags=["Номера"])
@@ -27,10 +28,13 @@ async def get_room(
 
 
 @router.post("/{hotel_id}/rooms")
-async def add_room(_: DepAccess, db: DepDB, room_data: AddRoom, hotel_id: int = Path()):
+async def create_room(_: DepAccess, db: DepDB, room_data: AddRoom, hotel_id: int = Path()):
     new_room_data = AddRoomToDb(**room_data.model_dump(), hotel_id=hotel_id)
 
     room = await db.rooms.add(new_room_data)
+
+    await db.rooms_facilities.add_bulk([AddRoomsFacilities(room_id=room.id, facility_id=id_) for id_ in room_data.facilities_ids])
+
     await db.commit()
 
     return {
@@ -60,10 +64,10 @@ async def update_room(
     hotel_id: int = Path(),
     room_id: int = Path(),
 ):
-    await db.rooms.edit(room_data, hotel_id=hotel_id, id=room_id)
+    room = await db.rooms.edit_room(room_data, hotel_id=hotel_id, room_id=room_id)
     await db.commit()
 
-    return {"status": "OK"}
+    return {"status": "OK", "data": room}
 
 
 @router.patch("/{hotel_id}/rooms/{room_id}")
@@ -74,7 +78,7 @@ async def edit_room(
     hotel_id: int = Path(),
     room_id: int = Path(),
 ):
-    await db.rooms.edit(room_data, exclude_unset=True, hotel_id=hotel_id, id=room_id)
+    room = await db.rooms.edit_room(room_data, exclude_unset=True, hotel_id=hotel_id, room_id=room_id)
     await db.commit()
 
-    return {"status": "OK"}
+    return {"status": "OK","data": room}

@@ -28,8 +28,8 @@ class BaseRepository:
             self.schema.model_validate(model, from_attributes=True) for model in models
         ]
 
-    async def get_one_none(self, **filter_by):
-        query = select(self.model).filter_by(**filter_by)
+    async def get_one_none(self,*filter_ , **filter_by):
+        query = select(self.model).filter(*filter_).filter_by(**filter_by)
         result = await self.session.execute(query)
         model = result.scalars().one_or_none()
         if not model:
@@ -56,9 +56,14 @@ class BaseRepository:
 
         return self.schema.model_validate(model, from_attributes=True)
 
-    async def edit(self, data: BaseSchema, exclude_unset=False, **filter_by):
+    async def add_bulk(self, data_list: list[BaseSchema]):
+        stmt = Insert(self.model).values([data.model_dump() for data in data_list])
+        print(stmt.compile(bind=engine, compile_kwargs={"literal_binds": True}))
+        await self.session.execute(stmt)
 
-        query = select(self.model).filter_by(**filter_by)
+    async def edit(self, data: BaseSchema, *filter_, exclude_unset=False, **filter_by):
+
+        query = select(self.model).filter(*filter_).filter_by(**filter_by)
         result = await self.session.execute(query)
         result_orm = result.scalars().all()
         if len(result_orm) > 1:
@@ -70,9 +75,14 @@ class BaseRepository:
             update(self.model)
             .filter_by(**filter_by)
             .values(**data.model_dump(exclude_unset=exclude_unset))
-        )
+        ).returning(self.model)
+        print("----------------------....................................")
         print(stmt.compile(bind=engine, compile_kwargs={"literal_binds": True}))
-        await self.session.execute(stmt)
+        result = await self.session.execute(stmt)
+        model = result.scalars().one_or_none()
+        if not model:
+            raise HTTPException(404)
+        return self.schema.model_validate(model, from_attributes=True)
 
     async def delete(self, **filter_by):
         query = select(self.model).filter_by(**filter_by)
