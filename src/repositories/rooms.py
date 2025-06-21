@@ -49,7 +49,7 @@ class RoomsRepository(BaseRepository):
         else:
             stmt = select(self.model).filter_by(id=room_id)
 
-        if data.facilities_ids:
+        if data.facilities_ids is not None:
             fac_ids = data.facilities_ids
             rf = RoomsFacilitiesORM
             f = FacilitiesOrm
@@ -88,59 +88,60 @@ class RoomsRepository(BaseRepository):
                 .cte("deleted")
             )
 
-            """ ----------------------------------------------------------------------------------------
-            Получает список id facilities, 
-                это facilities которые есть в запросе но нет у room, их нужно добавить, 
-                дополнительно проверяет что facilities.id существует в базе          
-                
-            add_facilities_ids as (
-                select id as facilities_id from (values (8),(9),(11)) as vals(id)
-                where id not in (select rf.facility_id from rooms_facilities rf where rf.room_id = 17) and id in (select f.id from facilities f)
-                ),
-            """
-            vals = [select(literal(i).label("id")) for i in fac_ids]
-            vals_union = union_all(*vals).alias("vals")
-            add_facilities_ids = (
-                select(vals_union.c.id.label("facilities_id"))
-                .select_from(vals_union)
-                .filter(
-                    vals_union.c.id.notin_(
-                        select(rf.facility_id).select_from(rf).filter(rf.room_id == room_id)
-                    ),
-                    vals_union.c.id.in_(select(f.id).select_from(f)),
-                )
-                .cte("add_facilities_ids")
-            )
-
-            """ ----------------------------------------------------------------------------------------         
-            Добавляет связи rooms_facilities, из списка add_facilities_ids
-            
-            insert into rooms_facilities (room_id, facility_id)
-                select 17, facilities_id from add_facilities_ids"""
-
-            # new_case insert+select можно так [col.name for col in rf.columns] или конкретно ["room_id", "facility_id"]
-            # new_case это literal(room_id) подставляем конкретное значение
-            add_facilities = (
-                insert(rf)
-                .from_select(
-                    ["room_id", "facility_id"],
-                    select(
-                        literal(room_id),
-                        add_facilities_ids.c.facilities_id,
-                    ),
-                )
-                .cte("add_facilities")
-            )
             if deleted is not None:
-                stmt = stmt.add_cte(deleted)
+                stmt = stmt.add_cte(deleted) # new_case .add_cte(deleted) присоединяет к запросу deleted
 
-            if add_facilities is not None:
-                stmt = stmt.add_cte(add_facilities)
+            if fac_ids:
+                """ ----------------------------------------------------------------------------------------
+                Получает список id facilities, 
+                    это facilities которые есть в запросе но нет у room, их нужно добавить, 
+                    дополнительно проверяет что facilities.id существует в базе          
+                    
+                add_facilities_ids as (
+                    select id as facilities_id from (values (8),(9),(11)) as vals(id)
+                    where id not in (select rf.facility_id from rooms_facilities rf where rf.room_id = 17) and id in (select f.id from facilities f)
+                    ),
+                """
+                vals = [select(literal(i).label("id")) for i in fac_ids]
+                vals_union = union_all(*vals).alias("vals")
+                add_facilities_ids = (
+                    select(vals_union.c.id.label("facilities_id"))
+                    .select_from(vals_union)
+                    .filter(
+                        vals_union.c.id.notin_(
+                            select(rf.facility_id).select_from(rf).filter(rf.room_id == room_id)
+                        ),
+                        vals_union.c.id.in_(select(f.id).select_from(f)),
+                    )
+                    .cte("add_facilities_ids")
+                )
+
+                """ ----------------------------------------------------------------------------------------         
+                Добавляет связи rooms_facilities, из списка add_facilities_ids
+                
+                insert into rooms_facilities (room_id, facility_id)
+                    select 17, facilities_id from add_facilities_ids"""
+
+                # new_case insert+select можно так [col.name for col in rf.columns] или конкретно ["room_id", "facility_id"]
+                # new_case это literal(room_id) подставляем конкретное значение
+                add_facilities = (
+                    insert(rf)
+                    .from_select(
+                        ["room_id", "facility_id"],
+                        select(
+                            literal(room_id),
+                            add_facilities_ids.c.facilities_id,
+                        ),
+                    )
+                    .cte("add_facilities")
+                )
+                if add_facilities is not None:
+                    stmt = stmt.add_cte(add_facilities)
 
 
-        # new_case .add_cte(deleted) присоединяет к запросу deleted
 
-        # print(stmt.compile(bind=engine, compile_kwargs={"literal_binds": True}))
+
+        print(stmt.compile(bind=engine, compile_kwargs={"literal_binds": True}))
 
         result = await self.session.execute(stmt)
         room_orm = result.scalar()
