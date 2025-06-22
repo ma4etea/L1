@@ -4,6 +4,7 @@ from fastapi import HTTPException
 from pydantic import BaseModel as BaseSchema
 from pydantic.v1.schema import schema
 from sqlalchemy import func, select, delete, literal, union_all, insert, update
+from sqlalchemy.orm import selectinload, joinedload
 
 from src.database import engine
 from src.models.bookings import BookingsOrm
@@ -148,3 +149,17 @@ class RoomsRepository(BaseRepository):
 
         return self.schema.model_validate(room_orm, from_attributes=True)
 
+
+
+    async def get_rooms_with(self, **filter_by):
+
+        query = (
+            select(self.model)
+            .filter_by(**filter_by)
+            .options(selectinload(self.model.facilities))
+        )
+        print(query.compile(bind=engine, compile_kwargs={"literal_binds": True}))
+
+        res = await self.session.execute(query)
+        models = res.scalars().all()
+        return [self.schema.model_validate(model, from_attributes=True) for model in models]

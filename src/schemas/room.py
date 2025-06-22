@@ -1,5 +1,7 @@
 from pydantic import BaseModel
 
+from src.schemas.facilities import Facility
+
 
 class BaseRoom(BaseModel):
     title: str
@@ -23,3 +25,4 @@ class AddRoomToDb(BaseRoom):
 
 class Room(BaseRoom):
     id: int
+    facilities: list[Facility]

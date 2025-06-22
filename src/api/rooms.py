@@ -12,7 +12,7 @@ router = APIRouter(prefix="/hotels", tags=["Номера"])
 async def get_rooms(_: DepAccess, db: DepDB, hotel_id: int = Path()):
     return {
         "status": "OK",
-        "data": await db.rooms.get_all(hotel_id=hotel_id),
+        "data": await db.rooms.get_rooms_with(hotel_id=hotel_id),
     }
 
 
