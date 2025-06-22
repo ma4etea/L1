@@ -23,7 +23,7 @@ async def get_room(
     hotel_id: int = Path(),
     room_id: int = Path(),
 ):
-    room = await db.rooms.get_one_none(hotel_id=hotel_id, id=room_id)
+    room = await db.rooms.get_room_with(hotel_id=hotel_id, id=room_id)
     if not room:
         raise HTTPException(404)
     return {"status": "OK", "data": room}

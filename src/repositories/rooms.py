@@ -163,3 +163,19 @@ class RoomsRepository(BaseRepository):
         res = await self.session.execute(query)
         models = res.scalars().all()
         return [self.schema.model_validate(model, from_attributes=True) for model in models]
+
+    async def get_room_with(self, **filter_by):
+
+        query = (
+            select(self.model)
+            .options(joinedload(self.model.facilities))
+            .filter_by(**filter_by)
+        )
+
+        res = await self.session.execute(query)
+        model = res.unique().scalar_one_or_none()
+
+        return self.schema.model_validate(model, from_attributes=True)
+
+
+
