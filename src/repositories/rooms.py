@@ -11,13 +11,14 @@ from src.models.bookings import BookingsOrm
 from src.models.facilities import RoomsFacilitiesORM, FacilitiesOrm
 from src.models.rooms import RoomsOrm
 from src.repositories.base import BaseRepository
+from src.repositories.mappers.mappers import RoomDataMapper
 from src.repositories.utils import get_available_rooms_ids
 from src.schemas.room import Room
 
 
 class RoomsRepository(BaseRepository):
     model = RoomsOrm
-    schema = Room
+    mapper = RoomDataMapper
 
     async def get_available_rooms_shymeyko(
         self,
@@ -147,7 +148,7 @@ class RoomsRepository(BaseRepository):
         result = await self.session.execute(stmt)
         room_orm = result.scalar()
 
-        return self.schema.model_validate(room_orm, from_attributes=True)
+        return self.mapper.to_domain(room_orm)
 
 
 
@@ -162,7 +163,7 @@ class RoomsRepository(BaseRepository):
 
         res = await self.session.execute(query)
         models = res.scalars().all()
-        return [self.schema.model_validate(model, from_attributes=True) for model in models]
+        return [self.mapper.to_domain(model) for model in models]
 
     async def get_room_with(self, **filter_by):
 
@@ -175,7 +176,7 @@ class RoomsRepository(BaseRepository):
         res = await self.session.execute(query)
         model = res.unique().scalar_one_or_none()
 
-        return self.schema.model_validate(model, from_attributes=True)
+        return self.mapper.to_domain(model)
 
 
 

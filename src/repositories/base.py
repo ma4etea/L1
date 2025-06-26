@@ -1,14 +1,16 @@
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 from pydantic import BaseModel as BaseSchema
-from src.database import engine
+from src.database import engine, BaseModel
 from fastapi import HTTPException
 from sqlalchemy import select, Insert, delete, update
 
+from src.repositories.mappers.base import DataMapper
+
 
 class BaseRepository:
-    model = None
-    schema: BaseSchema = None
+    model: BaseModel = None
+    mapper: DataMapper = None
 
     def __init__(self, session: AsyncSession):
         self.session = session
@@ -25,7 +27,7 @@ class BaseRepository:
         models = result.scalars().all()
 
         return [
-            self.schema.model_validate(model, from_attributes=True) for model in models
+            self.mapper.to_domain(model) for model in models
         ]
 
     async def get_one_none(self,*filter_ , **filter_by):
@@ -34,7 +36,7 @@ class BaseRepository:
         model = result.scalars().one_or_none()
         if not model:
             return None
-        return self.schema.model_validate(model, from_attributes=True)
+        return self.mapper.to_domain(model)
 
     async def add(self, data: BaseSchema):
         add_hotel_stmt = (
@@ -54,7 +56,7 @@ class BaseRepository:
 
         model = result.scalars().one_or_none()
 
-        return self.schema.model_validate(model, from_attributes=True)
+        return self.mapper.to_domain(model)
 
     async def add_bulk(self, data_list: list[BaseSchema]):
         stmt = Insert(self.model).values([data.model_dump() for data in data_list])
@@ -82,7 +84,7 @@ class BaseRepository:
         model = result.scalars().one_or_none()
         if not model:
             raise HTTPException(404)
-        return self.schema.model_validate(model, from_attributes=True)
+        return self.mapper.to_domain(model)
 
     async def delete(self, **filter_by):
         query = select(self.model).filter_by(**filter_by)
