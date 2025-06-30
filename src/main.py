@@ -25,7 +25,8 @@ from src.api.images import router as images_router
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    asyncio.create_task(resend_email())  # new_case: способ как запускать цикличные асинхронные такси через костыль
+    # new_case: способ как запускать цикличные асинхронные такси через костыль
+    # asyncio.create_task(resend_email())
     await redis.connect()  # new_case: создает клиент redis
     FastAPICache.init(RedisBackend(redis.redis_client),
                       prefix="fastapi-cache")  # new_case: это позволяет над ручками вешать декоратор @cache это redis
