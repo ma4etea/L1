@@ -3,6 +3,7 @@ from redis.asyncio import Redis
 from src.config import settings
 
 
+# new_case: создает экземпляр redis_client с кастомными методами
 class RedisManager:
     def __init__(self, host: str, port: int):
         self.redis_client: Redis | None = None

@@ -24,8 +24,8 @@ from src.api.images import router as images_router
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    await redis.connect()
-    FastAPICache.init(RedisBackend(redis.redis_client), prefix="fastapi-cache")
+    await redis.connect()  # new_case: создает клиент redis
+    FastAPICache.init(RedisBackend(redis.redis_client), prefix="fastapi-cache")  # new_case: это позволяет над ручками вешать декоратор @cache это redis
     yield
     await redis.close()
 

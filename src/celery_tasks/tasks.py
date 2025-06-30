@@ -13,7 +13,7 @@ from src.utils.db_manager import DBManager
 task1: Task
 
 
-@celery_inst.task
+@celery_inst.task  # new_case: декоратор делает из функции задачу celery
 def task1():
     sleep(5)
     print("такса1 выполнена")
@@ -24,7 +24,8 @@ async def today_booking():
         booking = await db.bookings.get_today_booking()
         print(booking)
 
-@celery_inst.task(name="send_msg")
+@celery_inst.task(name="send_msg")  # new_case: Декоратор с именем, дает alias для задачи в брокере,
+                                    # new_case: нужно для celery_inst.conf.beat_schedule что бы обратится к задаче по имени
 def send_booking_msg():
     asyncio.run(today_booking())
 
@@ -58,7 +59,7 @@ def save_resized_images(file_path: str, sizes=(1000, 500, 300), output_dir="src/
         height = int(image.height * ratio)
         resized = image.resize((width, height))
 
-        new_filename = f"{base_filename}_{width}.jpg"
+        new_filename = f"{base_filename}_{width}_c.jpg"
         save_path = os.path.join(output_dir, new_filename)
 
         resized.save(save_path, format="JPEG", quality=85)
