@@ -111,3 +111,7 @@ class BookingsRepository(BaseRepository):
 
 
 
+    async def get_today_booking(self):
+        query = select(self.model).filter(self.model.date_to == date.today())
+        res = await self.session.execute(query)
+        return [self.mapper.to_domain(model) for model in res.scalars().all()]

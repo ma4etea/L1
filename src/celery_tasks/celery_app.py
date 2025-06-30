@@ -12,3 +12,10 @@ celery_inst = Celery(
     include=["src.celery_tasks.tasks"]
 
 )
+
+celery_inst.conf.beat_schedule = {
+    'run-every-10-seconds': {
+        'task': 'send_msg',
+        'schedule': 10.0,  # каждые 10 секунд
+}
+}

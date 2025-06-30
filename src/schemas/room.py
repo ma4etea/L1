@@ -25,4 +25,3 @@ class AddRoomToDb(BaseRoom):
 
 class Room(BaseRoom):
     id: int
-    facilities: list[Facility]

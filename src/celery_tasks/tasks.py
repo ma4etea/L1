@@ -1,3 +1,4 @@
+import asyncio
 from time import sleep
 
 from celery import Task
@@ -5,6 +6,9 @@ from celery import Task
 from src.celery_tasks.celery_app import celery_inst
 from PIL import Image
 import os
+
+from src.database import new_session_null_pool
+from src.utils.db_manager import DBManager
 
 task1: Task
 
@@ -14,12 +18,20 @@ def task1():
     sleep(5)
     print("такса1 выполнена")
 
+async def today_booking():
+    async with DBManager(session_factory=new_session_null_pool) as db:
+        print("Запуск бит")
+        booking = await db.bookings.get_today_booking()
+        print(booking)
+
+@celery_inst.task(name="send_msg")
+def send_booking_msg():
+    asyncio.run(today_booking())
+
+
 
 save_resized_images: Task
 
-
-
-from celery import shared_task
 
 @celery_inst.task
 def save_resized_images(file_path: str, sizes=(1000, 500, 300), output_dir="src/static/images/"):
