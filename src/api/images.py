@@ -1,7 +1,7 @@
 from fastapi import APIRouter, UploadFile, BackgroundTasks
 import shutil
 
-from back_ground_tasks.tasks import save_resized_images_f
+from background_tasks.tasks import save_resized_images_f
 from src.celery_tasks.tasks import save_resized_images
 
 router = APIRouter(prefix="/images", tags=["Загрузка изображений"])

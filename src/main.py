@@ -1,10 +1,11 @@
+import asyncio
 import sys
 from contextlib import asynccontextmanager
 from pathlib import Path
 
 sys.path.append(str(Path(__file__).parent.parent))
 # from src.database import *
-
+from background_tasks.tasks import resend_email
 from src.connectors.redis_conn import redis, Redis
 from fastapi_cache import FastAPICache
 from fastapi_cache.backends.redis import RedisBackend
@@ -24,8 +25,10 @@ from src.api.images import router as images_router
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    asyncio.create_task(resend_email())  # new_case: способ как запускать цикличные асинхронные такси через костыль
     await redis.connect()  # new_case: создает клиент redis
-    FastAPICache.init(RedisBackend(redis.redis_client), prefix="fastapi-cache")  # new_case: это позволяет над ручками вешать декоратор @cache это redis
+    FastAPICache.init(RedisBackend(redis.redis_client),
+                      prefix="fastapi-cache")  # new_case: это позволяет над ручками вешать декоратор @cache это redis
     yield
     await redis.close()
 

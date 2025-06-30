@@ -27,7 +27,7 @@ async def today_booking():
 @celery_inst.task(name="send_msg")  # new_case: Декоратор с именем, дает alias для задачи в брокере,
                                     # new_case: нужно для celery_inst.conf.beat_schedule что бы обратится к задаче по имени
 def send_booking_msg():
-    asyncio.run(today_booking())
+    asyncio.run(today_booking())  # new_case: это способ как запустить в celery асинхронную функцию
 
 
 

@@ -11,8 +11,10 @@ engine = create_async_engine(settings.DB_URL)
 
 new_session = async_sessionmaker(bind=engine, expire_on_commit=False)
 
+# new_case: позволяет повторно запускать только одно подключение к базе, нужно для asyncio.run внутри celery
 engine_null_pool = create_async_engine(settings.DB_URL, poolclass=NullPool)
 new_session_null_pool = async_sessionmaker(bind=engine_null_pool, expire_on_commit=False)
+
 
 class BaseModel(DeclarativeBase):
     pass
