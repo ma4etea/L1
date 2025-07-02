@@ -30,13 +30,13 @@ async def get_room(
 
 
 @router.post("/{hotel_id}/rooms")
-async def create_room(_: DepAccess, db: DepDB, room_data: AddRoom, hotel_id: int = Path()):
+async def create_room(db: DepDB, room_data: AddRoom, hotel_id: int = Path()):
     new_room_data = AddRoomToDb(**room_data.model_dump(), hotel_id=hotel_id)
 
     room = await db.rooms.add(new_room_data)
 
-    await db.rooms_facilities.add_bulk([AddRoomsFacilities(room_id=room.id, facility_id=id_) for id_ in room_data.facilities_ids])
-
+    # await db.rooms_facilities.add_bulk([AddRoomsFacilities(room_id=room.id, facility_id=id_) for id_ in room_data.facilities_ids])
+    #
     await db.commit()
 
     return {

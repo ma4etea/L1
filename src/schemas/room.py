@@ -10,7 +10,7 @@ class BaseRoom(BaseModel):
     quantity: int
 
 class AddRoom(BaseRoom):
-    facilities_ids: list[int]
+    facilities_ids: list[int] | None = None
 
 class EditRoom(BaseModel):
     title: str | None = None
