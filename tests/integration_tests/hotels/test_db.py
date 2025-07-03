@@ -3,7 +3,7 @@ from src.schemas.hotels import HotelAdd
 from src.utils.db_manager import DBManager
 
 
-async def test_add_hotel():
+async def test_add_hotel(db):
     hotel = HotelAdd(title="победа", location="ула столеваров")
     async with DBManager(new_session_null_pool) as db:
         new_mode_data = await db.hotels.add(hotel)

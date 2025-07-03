@@ -35,8 +35,8 @@ async def create_room(db: DepDB, room_data: AddRoom, hotel_id: int = Path()):
 
     room = await db.rooms.add(new_room_data)
 
-    # await db.rooms_facilities.add_bulk([AddRoomsFacilities(room_id=room.id, facility_id=id_) for id_ in room_data.facilities_ids])
-    #
+    await db.rooms_facilities.add_bulk([AddRoomsFacilities(room_id=room.id, facility_id=id_) for id_ in room_data.facilities_ids])
+
     await db.commit()
 
     return {
