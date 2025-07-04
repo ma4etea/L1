@@ -3,6 +3,10 @@ import sys
 from contextlib import asynccontextmanager
 from pathlib import Path
 
+from fastapi_cache.backends.inmemory import InMemoryBackend
+
+from src.config import settings
+
 sys.path.append(str(Path(__file__).parent.parent))
 # from src.database import *
 from background_tasks.tasks import resend_email
@@ -33,6 +37,15 @@ async def lifespan(app: FastAPI):
     yield
     await redis.close()
 
+
+# new_case: вариант использование redis в тестах если редис доступен во время теста
+if settings.MODE == "test_":
+    FastAPICache.init(RedisBackend(redis.redis_client),
+                      prefix="fastapi-cache")
+# new_case: вместо redis использовать оперативную память, под капотом все хранится в обычном dict
+if settings.MODE == "test__":
+    FastAPICache.init(InMemoryBackend(),
+                      prefix="fastapi-cache")
 
 app = FastAPI(lifespan=lifespan)
 app.include_router(auth_router)
