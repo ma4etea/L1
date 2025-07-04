@@ -3,7 +3,7 @@ import json
 import pytest
 from httpx import ASGITransport, AsyncClient
 from src.config import settings
-from src.database import engine_null_pool, BaseModel, new_session_null_pool
+from src.database import BaseModel, new_session_null_pool, engine, new_session
 from src.main import app
 from src.models import *
 from src.schemas.hotels import Hotel, HotelAdd
@@ -18,7 +18,7 @@ def check_env():
 
 @pytest.fixture(autouse=True, scope="session")
 async def create_table(check_env):
-    async with engine_null_pool.begin() as conn:
+    async with engine.begin() as conn:  # new_case: Важно что engine должен быть с параметром poolclass=NullPool
         await conn.run_sync(BaseModel.metadata.drop_all)
         await conn.run_sync(BaseModel.metadata.create_all)
 
@@ -26,7 +26,7 @@ async def create_table(check_env):
 
 @pytest.fixture(scope="function")  # new_case: "function" это область видимости это fixture вызывается каждый раз при использовании функции
 async def db(create_table):
-    async with DBManager(session_factory=new_session_null_pool) as db:
+    async with DBManager(session_factory=new_session) as db:
         yield db
 
 
@@ -47,6 +47,7 @@ async def register_user(create_table, ac):
     assert response.status_code == 200
 
 
+# new_case: заполнение тестовыми данными, нужно использовать один раз свой db_ внутри
 @pytest.fixture(autouse=True, scope="session")
 async def add_hotels_rooms(create_table):
     with open("tests/mock_hotels.json", "r") as file:

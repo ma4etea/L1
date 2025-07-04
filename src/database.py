@@ -7,7 +7,7 @@ from sqlalchemy.orm import DeclarativeBase
 
 from src.config import settings
 
-params = {}
+params = {}  # new_case: подмена engine для тестов
 if settings.MODE == "test":
     params = {"poolclass": NullPool}
 

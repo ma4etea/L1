@@ -13,7 +13,7 @@ router = APIRouter(prefix="/facilities", tags=["Удобства"])
 
 @router.post("")
 async def create_facility(
-        user_id: DepAccess,
+        # user_id: DepAccess,
         db: DepDB,
         data_facility: AddFacility
 ):
