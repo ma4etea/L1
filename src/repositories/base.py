@@ -38,16 +38,18 @@ class BaseRepository:
             return None
         return self.mapper.to_domain(model)
 
-    async def add(self, data: BaseSchema):
-        add_hotel_stmt = (
-            Insert(self.model).values(**data.model_dump()).returning(self.model)
+    async def add(self, data: BaseSchema, ):
+        stmt = (
+            Insert(self.model)
+            .values(**data.model_dump())
+            .returning(self.model)
         )
         print(
-            add_hotel_stmt.compile(bind=engine, compile_kwargs={"literal_binds": True})
+            stmt.compile(bind=engine, compile_kwargs={"literal_binds": True})
         )
 
         try:
-            result = await self.session.execute(add_hotel_stmt)
+            result = await self.session.execute(stmt)
         except IntegrityError as e:
             print("UniqueViolationError" in str(e.orig), e.orig)
             if "users_email_key" in str(e.orig):

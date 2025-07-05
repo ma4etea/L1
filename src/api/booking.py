@@ -19,7 +19,7 @@ async def add_booking(
         raise HTTPException(404)
 
     data_to_db = BookingToDB(**data_booking.model_dump(), user_id=user_id, price=room.price)
-    booking = await db.bookings.add(data_to_db)
+    booking = await db.bookings.add_booking(data_to_db)
     await db.commit()
     return {"status": "ok", "data": booking}
 

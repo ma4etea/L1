@@ -81,9 +81,6 @@ async def auth_ac(register_user, ac):
     creds = register_user
     response = await ac.post("/auth/login", json=creds)
     assert response.status_code == 200
-    async with AsyncClient(
-            transport=ASGITransport(app=app),
-            base_url="http://test",
-            cookies=response.cookies
-    ) as ac_:
-        yield ac_
+    print(f'{ac.cookies =}')
+    assert ac.cookies["access_token"]
+    yield ac

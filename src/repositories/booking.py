@@ -1,5 +1,4 @@
 from datetime import date
-
 from fastapi import HTTPException
 from sqlalchemy import select, func
 
@@ -7,7 +6,7 @@ from src.models.bookings import BookingsOrm
 from src.models.rooms import RoomsOrm
 from src.repositories.base import BaseRepository
 from src.repositories.mappers.mappers import BookingDataMapper
-from src.schemas.booking import Booking, RoomsAvailable
+from src.schemas.booking import Booking, RoomsAvailable, BookingToDB
 
 
 class BookingsRepository(BaseRepository):
@@ -69,6 +68,7 @@ class BookingsRepository(BaseRepository):
 
         print(query.compile(compile_kwargs={"literal_binds": True}))
 
+
         result = await self.session.execute(query)
         rows = result.all()
         return [RoomsAvailable(**(row._mapping)) for row in rows]
@@ -115,3 +115,50 @@ class BookingsRepository(BaseRepository):
         query = select(self.model).filter(self.model.date_to == date.today())
         res = await self.session.execute(query)
         return [self.mapper.to_domain(model) for model in res.scalars().all()]
+
+    async def add_booking(self, data: BookingToDB):
+        res = await self.session.execute(self.check_rooms_available(room_id=data.room_id, date_from=data.date_from, date_to=data.date_to))
+        is_available = res.scalar()
+        if not is_available:
+            raise HTTPException(404, f"Нет свободных комнат")
+        model = await self.add(data)
+        return model
+
+
+    def check_rooms_available(
+            self, date_from: date, date_to: date, room_id: int,
+    ):
+        """
+            WITH rooms_booked_count AS (
+            SELECT b.room_id AS room_id, COUNT(*) AS booked
+            FROM bookings b
+            WHERE b.date_from <= '2025-07-06' AND b.date_to >= '2025-07-05'
+              AND b.room_id = 5
+            GROUP BY b.room_id
+            )
+        """
+        b = BookingsOrm
+        rooms_booked_count = (
+            select(b.room_id, func.count('*').label("booked"))
+            .select_from(b)
+            .filter(b.date_from <= date_from, b.date_to >= date_to, b.room_id == room_id)
+            .group_by(b.room_id)
+            .cte("rooms_booked_count")
+        )
+        """
+            SELECT (r.quantity - COALESCE(rbc.booked, 0)) > 0 AS is_available
+            FROM rooms r
+            LEFT JOIN rooms_booked_count rbc ON r.id = rbc.room_id
+            WHERE r.id = 5;
+        """
+        rbc = rooms_booked_count
+        r = RoomsOrm
+        query = (
+            select((r.quantity - func.coalesce(rbc.c.booked, 0) > 0).label("is_available"))
+            .select_from(r)
+            .outerjoin(rbc, r.id == rbc.c.room_id)
+            .filter(r.id == room_id)
+        )
+        print(query.compile(compile_kwargs={"literal_binds": True}))
+
+        return query
