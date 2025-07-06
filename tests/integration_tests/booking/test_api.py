@@ -1,16 +1,59 @@
+import pytest
+
 from src.schemas.booking import Booking
 
 
-async def test_booking(auth_ac, db):
-    rooms = await db.rooms.get_all()
-
+@pytest.mark.parametrize(
+    "room_id, date_from, date_to, status_code",
+    [
+        (1, "2025-07-11", "2025-07-10", 200),
+        (1, "2025-07-11", "2025-07-10", 200),
+        (1, "2025-07-11", "2025-07-10", 200),
+        (1, "2025-07-11", "2025-07-10", 200),
+        (1, "2025-07-11", "2025-07-10", 200),
+        (1, "2025-07-11", "2025-07-10", 409),
+        (0, "2025-07-12", "2025-07-14", 404),
+    ])
+async def test_booking(room_id, date_from, date_to, status_code, auth_ac, db):
     booking = {
-        "date_from": "2025-07-07",
-        "date_to": "2025-07-05",
-        "room_id": rooms[0].id,
+        "date_from": date_from,
+        "date_to": date_to,
+        "room_id": room_id
     }
 
     resp = await auth_ac.post("/bookings", json=booking)
-    assert resp.status_code == 200
-    assert resp.json()["status"] == "ok"
-    assert Booking.model_validate(resp.json()["data"])
+    assert resp.status_code == status_code
+
+
+is_runed = False
+
+
+@pytest.fixture(scope="function")
+async def delete_all_booking(db):
+    global is_runed
+    if not is_runed:
+        await db.bookings.delete_bulk()
+        await db.commit()
+        is_runed = True
+
+@pytest.mark.parametrize(
+    "room_id, date_from, date_to, status_code, quantity_booking",
+    [
+        (1, "2025-07-11", "2025-07-10", 200, 1),
+        (1, "2025-07-11", "2025-07-10", 200, 2),
+        (1, "2025-07-11", "2025-07-10", 200, 3),
+    ])
+async def test_add_and_get_bookings(room_id, date_from, date_to, status_code, quantity_booking, delete_all_booking,
+                                    auth_ac):
+    booking = {
+        "date_from": date_from,
+        "date_to": date_to,
+        "room_id": room_id
+    }
+    resp = await auth_ac.post("/bookings", json=booking)
+    assert resp.status_code == status_code
+
+    resp = await auth_ac.get("/bookings/me")
+    assert resp.status_code == status_code
+    print("ПРОВЕРКА", resp.json()["data"])
+    assert len((resp.json()["data"])) == quantity_booking

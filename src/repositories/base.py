@@ -102,3 +102,11 @@ class BaseRepository:
         stmt = delete(self.model).filter_by(**filter_by)
         print(stmt.compile(bind=engine, compile_kwargs={"literal_binds": True}))
         await self.session.execute(stmt)
+
+    async def delete_bulk(self, *filter_, **filter_by):
+        stmt = (
+            delete(self.model)
+            .filter(*filter_)
+            .filter_by(**filter_by)
+        )
+        await self.session.execute(stmt)
