@@ -7,7 +7,7 @@ from src.models.rooms import RoomsOrm
 from src.repositories.base import BaseRepository
 from src.repositories.mappers.mappers import BookingDataMapper
 from src.repositories.utils import check_rooms_available
-from src.schemas.booking import Booking, RoomsAvailable, BookingToDB
+from src.schemas.booking import RoomsAvailable, BookingToDB
 
 
 class BookingsRepository(BaseRepository):
@@ -119,7 +119,7 @@ class BookingsRepository(BaseRepository):
             check_rooms_available(room_id=data.room_id, date_from=data.date_from, date_to=data.date_to))
         is_available = res.scalar_one_or_none()  # new_case: scalar_one_or_none будет ошибка MultipleResultsFound если больше одной строки, так как ожидается одна строка помогает в отладке, если вдруг вернете больше одной строки
         if not is_available:
-            raise HTTPException(409, f"Нет свободных комнат")
+            raise HTTPException(409, "Нет свободных комнат")
         model = await self.add(data)
         return model
 

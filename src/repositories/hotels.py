@@ -7,7 +7,6 @@ from src.models.rooms import RoomsOrm
 from src.repositories.base import BaseRepository
 from src.repositories.mappers.mappers import HotelDataMapper
 from src.repositories.utils import get_available_rooms_ids
-from src.schemas.hotels import Hotel
 
 
 class HotelsRepository(BaseRepository):

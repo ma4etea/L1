@@ -1,4 +1,3 @@
-import asyncio
 import sys
 from contextlib import asynccontextmanager
 from pathlib import Path
@@ -9,9 +8,8 @@ from fastapi_cache.backends.inmemory import InMemoryBackend
 
 sys.path.append(str(Path(__file__).parent.parent))
 # from src.database import *
-from background_tasks.tasks import resend_email
 from src.config import settings
-from src.connectors.redis_conn import redis, Redis
+from src.connectors.redis_conn import redis
 from fastapi_cache import FastAPICache
 from fastapi_cache.backends.redis import RedisBackend
 

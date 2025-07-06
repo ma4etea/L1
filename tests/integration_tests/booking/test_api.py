@@ -1,6 +1,5 @@
 import pytest
 
-from src.schemas.booking import Booking
 
 
 @pytest.mark.parametrize(

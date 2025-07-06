@@ -3,7 +3,7 @@ from asyncio import sleep as async_sleep
 from PIL import Image
 import os
 
-from src.api.dependecy import get_db, get_db_manager
+from src.api.dependecy import get_db_manager
 
 
 def save_resized_images_f(file_path: str, sizes=(1000, 500, 300), output_dir="src/static/images/"):
@@ -42,6 +42,6 @@ def save_resized_images_f(file_path: str, sizes=(1000, 500, 300), output_dir="sr
 async def resend_email():
     while True:
         async for db in get_db_manager():
-            booking = await db.bookings.get_today_booking()
+            await db.bookings.get_today_booking()
             print("send email")
         await async_sleep(10)

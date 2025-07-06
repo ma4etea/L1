@@ -10,7 +10,7 @@ async def get(i: int, endpoint: str):
     # print(f'Начал: {i}')
     url = f'http://127.0.0.1:8000/{endpoint}/{i}'
     async with aiohttp.ClientSession() as session:
-        async with session.get(url) as response:
+        async with session.get(url) as response: # noqa
             pass
             # print(f'Закончил: {i}')
 

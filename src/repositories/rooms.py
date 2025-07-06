@@ -1,19 +1,15 @@
 from datetime import date
 
-from fastapi import HTTPException
 from pydantic import BaseModel as BaseSchema
-from pydantic.v1.schema import schema
-from sqlalchemy import func, select, delete, literal, union_all, insert, update
+from sqlalchemy import select, delete, literal, union_all, insert, update
 from sqlalchemy.orm import selectinload, joinedload
 
 from src.database import engine
-from src.models.bookings import BookingsOrm
 from src.models.facilities import RoomsFacilitiesORM, FacilitiesOrm
 from src.models.rooms import RoomsOrm
 from src.repositories.base import BaseRepository
 from src.repositories.mappers.mappers import RoomDataMapper
 from src.repositories.utils import get_available_rooms_ids
-from src.schemas.room import Room
 
 
 class RoomsRepository(BaseRepository):

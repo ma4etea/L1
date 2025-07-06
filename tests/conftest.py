@@ -1,3 +1,4 @@
+# ruff: noqa: E402
 import json
 
 import pytest
@@ -14,8 +15,8 @@ from httpx import ASGITransport, AsyncClient
 from src.config import settings
 from src.database import BaseModel, new_session_null_pool, engine, new_session
 from src.main import app
-from src.models import *
-from src.schemas.hotels import Hotel, HotelAdd
+from src.models import * # noqa
+from src.schemas.hotels import HotelAdd
 from src.schemas.room import AddRoomToDb
 from src.utils.db_manager import DBManager
 

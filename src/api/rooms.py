@@ -92,7 +92,7 @@ async def edit_room(
 
 
 @router.put("/{hotel_id}/rooms_shymeiko/{room_id}")
-async def update_room(
+async def update_room_shymeiko(
     db: DepDB,
     _: DepAccess,
     room_data: AddRoom,
@@ -114,7 +114,7 @@ async def update_room(
 
 
 @router.patch("/{hotel_id}/rooms_shymeiko/{room_id}")
-async def edit_room(
+async def edit_room_shymeiko(
     _: DepAccess,
     db: DepDB,
     room_data: EditRoom,

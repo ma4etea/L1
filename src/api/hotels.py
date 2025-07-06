@@ -1,14 +1,9 @@
 from datetime import date
 
 from fastapi import Query, Body, Path, APIRouter, HTTPException
-from sqlalchemy import Insert, literal, select, Select, func
-from sqlalchemy.ext.asyncio import async_sessionmaker, AsyncSession
 
 from src.api.dependecy import DepPagination, DepDB
-from src.database import new_session, engine
-from src.models.hotels import HotelsOrm
-from src.repositories.hotels import HotelsRepository
-from src.schemas.hotels import Hotel, HotelPatch, HotelAdd
+from src.schemas.hotels import HotelPatch, HotelAdd
 
 router = APIRouter(prefix="/hotels", tags=["Отели"])
 
@@ -45,7 +40,6 @@ async def add_hotel(
             }
         ),
 ):
-    session: AsyncSession
     hotel = await db.hotels.add(hotel_data)
     await db.commit()
 

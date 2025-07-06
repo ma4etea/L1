@@ -9,7 +9,7 @@ from src.config import settings
 from src.database import BaseModel
 
 # new_case: импортируется все модели, импорты указаны в src.models.__init__.py
-from src.models import *
+from src.models import * # noqa
 
 #  $env:pythonpath="."; alembic revision --autogenerate -m init
 # this is the Alembic Config object, which provides

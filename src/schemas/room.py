@@ -1,6 +1,5 @@
 from pydantic import BaseModel
 
-from src.schemas.facilities import Facility
 
 
 class BaseRoom(BaseModel):
