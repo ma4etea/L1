@@ -28,6 +28,7 @@ async def test_booking(room_id, date_from, date_to, status_code, auth_ac, db):
 is_runed = False
 
 
+# new_case: так же можно сделать на scope="module", но тогда нужно будет внутри создать свою db_, так как db из conftest живет на scope="function"
 @pytest.fixture(scope="function")
 async def delete_all_booking(db):
     global is_runed
