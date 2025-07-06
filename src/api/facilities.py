@@ -12,12 +12,7 @@ router = APIRouter(prefix="/facilities", tags=["Удобства"])
 
 
 @router.post("")
-async def create_facility(
-        user_id: DepAccess,
-        db: DepDB,
-        data_facility: AddFacility
-):
-
+async def create_facility(user_id: DepAccess, db: DepDB, data_facility: AddFacility):
     task1.delay()
     facility = await db.facilities.add(data_facility)
     await db.commit()
@@ -25,9 +20,7 @@ async def create_facility(
 
 
 @router.get("")
-async def get_facilities(
-        db: DepDB
-):
+async def get_facilities(db: DepDB):
     facilities_from_cache: str | None = await redis.get("facilities")
     if not facilities_from_cache:
         print("из ДБ")
@@ -42,8 +35,6 @@ async def get_facilities(
 
 @router.get("/cached")
 @cache(expire=60)
-async def get_facilities_cached(
-        db: DepDB
-):
+async def get_facilities_cached(db: DepDB):
     print("получено из базы данных")
     return {"status": "ok", "data": await db.facilities.get_all()}

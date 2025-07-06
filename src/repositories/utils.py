@@ -6,7 +6,13 @@ from src.models.bookings import BookingsOrm
 from src.models.rooms import RoomsOrm
 
 
-def get_available_rooms_ids(offset: int, limit: int, date_from: date, date_to: date, hotel_id: int = None, ):
+def get_available_rooms_ids(
+    offset: int,
+    limit: int,
+    date_from: date,
+    date_to: date,
+    hotel_id: int = None,
+):
     """
     with rooms_booked_count as (
         select room_id, COUNT(*) as booked
@@ -38,9 +44,7 @@ def get_available_rooms_ids(offset: int, limit: int, date_from: date, date_to: d
             RoomsOrm.description,
             RoomsOrm.price,
             RoomsOrm.id.label("room_id"),
-            (
-                    RoomsOrm.quantity - func.coalesce(rooms_booked_count.c.booked, 0)
-            ).label("available"),
+            (RoomsOrm.quantity - func.coalesce(rooms_booked_count.c.booked, 0)).label("available"),
         )
         .select_from(RoomsOrm)
         .outerjoin(rooms_booked_count, RoomsOrm.id == rooms_booked_count.c.room_id)
@@ -49,11 +53,7 @@ def get_available_rooms_ids(offset: int, limit: int, date_from: date, date_to: d
 
     """ select * from rooms_available ra where ra.available > 0 """
 
-    rooms_ids_from_hotel = (
-        select(RoomsOrm.id)
-        .select_from(RoomsOrm)
-
-    )
+    rooms_ids_from_hotel = select(RoomsOrm.id).select_from(RoomsOrm)
     if hotel_id:
         rooms_ids_from_hotel = rooms_ids_from_hotel.filter_by(hotel_id=hotel_id)
         rooms_ids_from_hotel = rooms_ids_from_hotel.subquery("rooms_ids_from_hotel")
@@ -71,20 +71,22 @@ def get_available_rooms_ids(offset: int, limit: int, date_from: date, date_to: d
 
 
 def check_rooms_available(
-        date_from: date, date_to: date, room_id: int,
+    date_from: date,
+    date_to: date,
+    room_id: int,
 ):
     """
-        WITH rooms_booked_count AS (
-        SELECT b.room_id AS room_id, COUNT(*) AS booked
-        FROM bookings b
-        WHERE b.date_from <= '2025-07-06' AND b.date_to >= '2025-07-05'
-          AND b.room_id = 5
-        GROUP BY b.room_id
-        )
+    WITH rooms_booked_count AS (
+    SELECT b.room_id AS room_id, COUNT(*) AS booked
+    FROM bookings b
+    WHERE b.date_from <= '2025-07-06' AND b.date_to >= '2025-07-05'
+      AND b.room_id = 5
+    GROUP BY b.room_id
+    )
     """
     b = BookingsOrm
     rooms_booked_count = (
-        select(b.room_id, func.count('*').label("booked"))
+        select(b.room_id, func.count("*").label("booked"))
         .select_from(b)
         .filter(b.date_from <= date_from, b.date_to >= date_to, b.room_id == room_id)
         .group_by(b.room_id)

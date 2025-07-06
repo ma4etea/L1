@@ -18,17 +18,18 @@ def task1():
     sleep(5)
     print("такса1 выполнена")
 
+
 async def today_booking():
     async with DBManager(session_factory=new_session_null_pool) as db:
         print("Запуск бит")
         booking = await db.bookings.get_today_booking()
         print(booking)
 
+
 @celery_inst.task(name="send_msg")  # new_case: Декоратор с именем, дает alias для задачи в брокере,
-                                    # new_case: нужно для celery_inst.conf.beat_schedule что бы обратится к задаче по имени
+# new_case: нужно для celery_inst.conf.beat_schedule что бы обратится к задаче по имени
 def send_booking_msg():
     asyncio.run(today_booking())  # new_case: это способ как запустить в celery асинхронную функцию
-
 
 
 save_resized_images: Task
@@ -66,4 +67,3 @@ def save_resized_images(file_path: str, sizes=(1000, 500, 300), output_dir="src/
         saved_files.append(new_filename)
 
     return saved_files
-

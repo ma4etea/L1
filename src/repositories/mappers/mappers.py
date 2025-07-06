@@ -25,16 +25,17 @@ class FacilityDataMapper(DataMapper):
     model = FacilitiesOrm
     schema = Facility
 
+
 class RoomFacilityDataMapper(DataMapper):
     model = RoomsFacilitiesORM
     schema = RoomsFacilities
+
 
 class HotelDataMapper(DataMapper):
     model = HotelsOrm
     schema = Hotel
 
+
 class RoomDataMapper(DataMapper):
     model = RoomsOrm
     schema = Room
-
-

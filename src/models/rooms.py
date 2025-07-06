@@ -10,18 +10,15 @@ if typing.TYPE_CHECKING:
 
 
 class RoomsOrm(BaseModel):
-
     __tablename__ = "rooms"
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    hotel_id: Mapped[int] = mapped_column(ForeignKey(column='hotels.id'))
+    hotel_id: Mapped[int] = mapped_column(ForeignKey(column="hotels.id"))
     title: Mapped[str]
     description: Mapped[str | None]
     price: Mapped[int]
     quantity: Mapped[int]
 
     facilities: Mapped[list["FacilitiesOrm"]] = relationship(
-        back_populates="rooms",
-        secondary="rooms_facilities"
+        back_populates="rooms", secondary="rooms_facilities"
     )
-

@@ -10,35 +10,37 @@ router = APIRouter(prefix="/hotels", tags=["Отели"])
 
 @router.get("")
 async def get_available_hotels(
-        db: DepDB,
-        date_from: date,
-        date_to: date,
-        pag: DepPagination,
-        title: str | None = Query(None, description="Название отеля"),
-        location: str | None = Query(None, description="Локация"),
+    db: DepDB,
+    date_from: date,
+    date_to: date,
+    pag: DepPagination,
+    title: str | None = Query(None, description="Название отеля"),
+    location: str | None = Query(None, description="Локация"),
 ):
     per_page = pag.per_page or 3
     offset = per_page * pag.page - per_page
     limit = per_page
 
-    return await db.hotels.get_available_hotels(title, location, offset, limit, date_from=date_from, date_to=date_to)
+    return await db.hotels.get_available_hotels(
+        title, location, offset, limit, date_from=date_from, date_to=date_to
+    )
 
 
 @router.post("")
 async def add_hotel(
-        db: DepDB,
-        hotel_data: HotelAdd = Body(
-            openapi_examples={
-                "1": {
-                    "summary": "Дубай",
-                    "value": {"title": "Дубай мубай", "location": "sjdhisu"},
-                },
-                "2": {
-                    "summary": "Сочи",
-                    "value": {"title": "Сочи мочи", "location": "sjdhisu"},
-                },
-            }
-        ),
+    db: DepDB,
+    hotel_data: HotelAdd = Body(
+        openapi_examples={
+            "1": {
+                "summary": "Дубай",
+                "value": {"title": "Дубай мубай", "location": "sjdhisu"},
+            },
+            "2": {
+                "summary": "Сочи",
+                "value": {"title": "Сочи мочи", "location": "sjdhisu"},
+            },
+        }
+    ),
 ):
     hotel = await db.hotels.add(hotel_data)
     await db.commit()
@@ -66,9 +68,9 @@ async def edit_hotel(db: DepDB, hotel_id: int, hotel_data: HotelPatch):
     description="Только полное обновление",
 )
 async def upd_hotel(
-        db: DepDB,
-        hotel_id: int,
-        hotel_data: HotelAdd,
+    db: DepDB,
+    hotel_id: int,
+    hotel_data: HotelAdd,
 ):
     await db.hotels.edit(hotel_data, id=hotel_id)
     await db.commit()
@@ -77,8 +79,8 @@ async def upd_hotel(
 
 @router.get("/{hotel_id}")
 async def get_hotel(
-        db: DepDB,
-        hotel_id: int = Path(),
+    db: DepDB,
+    hotel_id: int = Path(),
 ):
     result = await db.hotels.get_one_none(id=hotel_id)
     if not result:

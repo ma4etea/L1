@@ -23,6 +23,7 @@ new_session_null_pool = async_sessionmaker(bind=engine_null_pool, expire_on_comm
 class BaseModel(DeclarativeBase):
     pass
 
+
 # async def raw(text: str):
 #     async with engine.begin() as conn:
 #         conn: AsyncConnection

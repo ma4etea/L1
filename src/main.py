@@ -5,7 +5,6 @@ from pathlib import Path
 from fastapi_cache.backends.inmemory import InMemoryBackend
 
 
-
 sys.path.append(str(Path(__file__).parent.parent))
 # from src.database import *
 from src.config import settings
@@ -31,20 +30,19 @@ async def lifespan(app: FastAPI):
     # new_case: способ как запускать цикличные асинхронные такси через костыль
     # asyncio.create_task(resend_email())
     await redis.connect()  # new_case: создает клиент redis
-    FastAPICache.init(RedisBackend(redis.redis_client),
-                      prefix="fastapi-cache")  # new_case: это позволяет над ручками вешать декоратор @cache это redis
+    FastAPICache.init(
+        RedisBackend(redis.redis_client), prefix="fastapi-cache"
+    )  # new_case: это позволяет над ручками вешать декоратор @cache это redis
     yield
     await redis.close()
 
 
 # new_case: вариант использование redis в тестах если редис доступен во время теста
 if settings.MODE == "test_":
-    FastAPICache.init(RedisBackend(redis.redis_client),
-                      prefix="fastapi-cache")
+    FastAPICache.init(RedisBackend(redis.redis_client), prefix="fastapi-cache")
 # new_case: вместо redis использовать оперативную память, под капотом все хранится в обычном dict
 if settings.MODE == "test__":
-    FastAPICache.init(InMemoryBackend(),
-                      prefix="fastapi-cache")
+    FastAPICache.init(InMemoryBackend(), prefix="fastapi-cache")
 
 app = FastAPI(lifespan=lifespan)
 app.include_router(auth_router)

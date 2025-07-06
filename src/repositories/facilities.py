@@ -27,7 +27,6 @@ class RoomsFacilitiesRepository(BaseRepository):
 
         delete_ids = list(set(current_facilities_ids) - set(facilities_ids))
 
-
         if delete_ids:
             delete_ids_stmt = delete(self.model).filter(self.model.facility_id.in_(delete_ids))
             await self.session.execute(delete_ids_stmt)
@@ -36,5 +35,6 @@ class RoomsFacilitiesRepository(BaseRepository):
             add_ids = list(set(facilities_ids) - set(current_facilities_ids))
             if add_ids:
                 add_ids_stmt = insert(self.model).values(
-                    [{"room_id": room_id, "facility_id": facility_id} for facility_id in add_ids])
+                    [{"room_id": room_id, "facility_id": facility_id} for facility_id in add_ids]
+                )
                 await self.session.execute(add_ids_stmt)

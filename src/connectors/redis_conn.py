@@ -39,4 +39,5 @@ class RedisManager:
             await self.redis_client.aclose()
             print("Redis отключен")
 
+
 redis = RedisManager(host=settings.REDIS_HOST, port=settings.REDIS_PORT)

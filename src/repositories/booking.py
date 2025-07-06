@@ -15,7 +15,12 @@ class BookingsRepository(BaseRepository):
     mapper = BookingDataMapper
 
     async def get_available_rooms(
-            self, offset: int, limit: int, date_from: date, date_to: date, hotel_id: int = None,
+        self,
+        offset: int,
+        limit: int,
+        date_from: date,
+        date_to: date,
+        hotel_id: int = None,
     ):
         """
         with rooms_booked_count as (
@@ -47,9 +52,9 @@ class BookingsRepository(BaseRepository):
                 RoomsOrm.description,
                 RoomsOrm.price,
                 RoomsOrm.id.label("room_id"),
-                (
-                        RoomsOrm.quantity - func.coalesce(rooms_booked_count.c.booked, 0)
-                ).label("available"),
+                (RoomsOrm.quantity - func.coalesce(rooms_booked_count.c.booked, 0)).label(
+                    "available"
+                ),
             )
             .select_from(RoomsOrm)
             .outerjoin(rooms_booked_count, RoomsOrm.id == rooms_booked_count.c.room_id)
@@ -61,7 +66,8 @@ class BookingsRepository(BaseRepository):
         """ select * from rooms_available ra where ra.available > 0 """
 
         query = (
-            select(rooms_available).filter(rooms_available.c.available > 0)
+            select(rooms_available)
+            .filter(rooms_available.c.available > 0)
             .offset(offset)
             .limit(limit)
             .order_by("id")
@@ -83,7 +89,14 @@ class BookingsRepository(BaseRepository):
         """
         b = BookingsOrm
         booked_days = (
-            select(b.room_id, b.user_id, b.price, ((b.date_to - b.date_from).label("days")), b.date_from, b.date_to)
+            select(
+                b.room_id,
+                b.user_id,
+                b.price,
+                ((b.date_to - b.date_from).label("days")),
+                b.date_from,
+                b.date_to,
+            )
             .select_from(b)
             .filter(b.user_id == user_id)
             .cte("booked_days")
@@ -98,14 +111,24 @@ class BookingsRepository(BaseRepository):
         bd = booked_days
         r = RoomsOrm
         query = (
-            select(bd.c.room_id, bd.c.user_id, r.hotel_id, bd.c.date_from, bd.c.date_to, r.title,
-                   r.description, bd.c.days, bd.c.price, (bd.c.days * bd.c.price).label("total_cost"))
+            select(
+                bd.c.room_id,
+                bd.c.user_id,
+                r.hotel_id,
+                bd.c.date_from,
+                bd.c.date_to,
+                r.title,
+                r.description,
+                bd.c.days,
+                bd.c.price,
+                (bd.c.days * bd.c.price).label("total_cost"),
+            )
             .select_from(bd)
             .join(r, r.id == bd.c.room_id)
             .order_by(bd.c.date_to)
         )
 
-        result = (await self.session.execute(query))
+        result = await self.session.execute(query)
         dicts = result.mappings().all()
         return dicts
 
@@ -116,11 +139,12 @@ class BookingsRepository(BaseRepository):
 
     async def add_booking(self, data: BookingToDB):
         res = await self.session.execute(
-            check_rooms_available(room_id=data.room_id, date_from=data.date_from, date_to=data.date_to))
+            check_rooms_available(
+                room_id=data.room_id, date_from=data.date_from, date_to=data.date_to
+            )
+        )
         is_available = res.scalar_one_or_none()  # new_case: scalar_one_or_none будет ошибка MultipleResultsFound если больше одной строки, так как ожидается одна строка помогает в отладке, если вдруг вернете больше одной строки
         if not is_available:
             raise HTTPException(409, "Нет свободных комнат")
         model = await self.add(data)
         return model
-
-

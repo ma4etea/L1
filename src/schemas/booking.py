@@ -26,4 +26,3 @@ class RoomsAvailable(BaseModel):
     price: int
     room_id: int
     available: int
-

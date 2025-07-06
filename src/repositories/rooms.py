@@ -27,23 +27,16 @@ class RoomsRepository(BaseRepository):
         return await self.get_all(
             offset,
             limit,
-            RoomsOrm.id.in_(
-                get_available_rooms_ids(offset, limit, date_from, date_to, hotel_id)
-            ),
+            RoomsOrm.id.in_(get_available_rooms_ids(offset, limit, date_from, date_to, hotel_id)),
         )
 
-    async def edit_room(
-        self, data: BaseSchema, room_id: int, exclude_unset=False, **filter_by
-    ):
-
+    async def edit_room(self, data: BaseSchema, room_id: int, exclude_unset=False, **filter_by):
         data_dict = data.model_dump(exclude_unset=exclude_unset, exclude={"facilities_ids"})
 
         if data_dict:
-            stmt = (
-                update(self.model)
-                .filter_by(id=room_id)
-                .values(**data_dict)
-            ).returning(self.model)
+            stmt = (update(self.model).filter_by(id=room_id).values(**data_dict)).returning(
+                self.model
+            )
         else:
             stmt = select(self.model).filter_by(id=room_id)
 
@@ -78,16 +71,18 @@ class RoomsRepository(BaseRepository):
                 delete(rf)
                 .filter(
                     rf.id.in_(
-                        select(
-                            delete_rooms_facilities_ids.c.rooms_facilities_id
-                        ).select_from(delete_rooms_facilities_ids)
+                        select(delete_rooms_facilities_ids.c.rooms_facilities_id).select_from(
+                            delete_rooms_facilities_ids
+                        )
                     )
                 )
                 .cte("deleted")
             )
 
             if deleted is not None:
-                stmt = stmt.add_cte(deleted) # new_case .add_cte(deleted) присоединяет к запросу deleted
+                stmt = stmt.add_cte(
+                    deleted
+                )  # new_case .add_cte(deleted) присоединяет к запросу deleted
 
             if fac_ids:
                 """ ----------------------------------------------------------------------------------------
@@ -136,9 +131,6 @@ class RoomsRepository(BaseRepository):
                 if add_facilities is not None:
                     stmt = stmt.add_cte(add_facilities)
 
-
-
-
         print(stmt.compile(bind=engine, compile_kwargs={"literal_binds": True}))
 
         result = await self.session.execute(stmt)
@@ -146,14 +138,9 @@ class RoomsRepository(BaseRepository):
 
         return self.mapper.to_domain(room_orm)
 
-
-
     async def get_rooms_with(self, **filter_by):
-
         query = (
-            select(self.model)
-            .filter_by(**filter_by)
-            .options(selectinload(self.model.facilities))
+            select(self.model).filter_by(**filter_by).options(selectinload(self.model.facilities))
         )
         print(query.compile(bind=engine, compile_kwargs={"literal_binds": True}))
 
@@ -162,17 +149,9 @@ class RoomsRepository(BaseRepository):
         return [self.mapper.to_domain(model) for model in models]
 
     async def get_room_with(self, **filter_by):
-
-        query = (
-            select(self.model)
-            .options(joinedload(self.model.facilities))
-            .filter_by(**filter_by)
-        )
+        query = select(self.model).options(joinedload(self.model.facilities)).filter_by(**filter_by)
 
         res = await self.session.execute(query)
         model = res.unique().scalar_one_or_none()
 
         return self.mapper.to_domain(model)
-
-
-

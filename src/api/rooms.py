@@ -35,7 +35,9 @@ async def create_room(db: DepDB, room_data: AddRoom, hotel_id: int = Path()):
 
     room = await db.rooms.add(new_room_data)
 
-    await db.rooms_facilities.add_bulk([AddRoomsFacilities(room_id=room.id, facility_id=id_) for id_ in room_data.facilities_ids])
+    await db.rooms_facilities.add_bulk(
+        [AddRoomsFacilities(room_id=room.id, facility_id=id_) for id_ in room_data.facilities_ids]
+    )
 
     await db.commit()
 
@@ -84,11 +86,12 @@ async def edit_room(
     hotel_id: int = Path(),
     room_id: int = Path(),
 ):
-    room = await db.rooms.edit_room(room_data, exclude_unset=True, hotel_id=hotel_id, room_id=room_id)
+    room = await db.rooms.edit_room(
+        room_data, exclude_unset=True, hotel_id=hotel_id, room_id=room_id
+    )
     await db.commit()
 
-    return {"status": "OK","data": room}
-
+    return {"status": "OK", "data": room}
 
 
 @router.put("/{hotel_id}/rooms_shymeiko/{room_id}")
@@ -99,7 +102,6 @@ async def update_room_shymeiko(
     hotel_id: int = Path(),
     room_id: int = Path(),
 ):
-
     start_data = datetime.now()
     if room_data.facilities_ids is not None:
         await db.rooms_facilities.set_facilities_to_room(room_id, room_data.facilities_ids)

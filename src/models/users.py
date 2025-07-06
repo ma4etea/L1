@@ -5,7 +5,6 @@ from src.database import BaseModel
 
 
 class UsersOrm(BaseModel):
-
     __tablename__ = "users"
 
     id: Mapped[int] = mapped_column(primary_key=True)

@@ -26,11 +26,9 @@ class BaseRepository:
         result = await self.session.execute(query)
         models = result.scalars().all()
 
-        return [
-            self.mapper.to_domain(model) for model in models
-        ]
+        return [self.mapper.to_domain(model) for model in models]
 
-    async def get_one_none(self,*filter_ , **filter_by):
+    async def get_one_none(self, *filter_, **filter_by):
         query = select(self.model).filter(*filter_).filter_by(**filter_by)
         result = await self.session.execute(query)
         model = result.scalars().one_or_none()
@@ -38,15 +36,12 @@ class BaseRepository:
             return None
         return self.mapper.to_domain(model)
 
-    async def add(self, data: BaseSchema, ):
-        stmt = (
-            Insert(self.model)
-            .values(**data.model_dump())
-            .returning(self.model)
-        )
-        print(
-            stmt.compile(bind=engine, compile_kwargs={"literal_binds": True})
-        )
+    async def add(
+        self,
+        data: BaseSchema,
+    ):
+        stmt = Insert(self.model).values(**data.model_dump()).returning(self.model)
+        print(stmt.compile(bind=engine, compile_kwargs={"literal_binds": True}))
 
         try:
             result = await self.session.execute(stmt)
@@ -66,7 +61,6 @@ class BaseRepository:
         await self.session.execute(stmt)
 
     async def edit(self, data: BaseSchema, *filter_, exclude_unset=False, **filter_by):
-
         query = select(self.model).filter(*filter_).filter_by(**filter_by)
         result = await self.session.execute(query)
         result_orm = result.scalars().all()
@@ -104,9 +98,5 @@ class BaseRepository:
         await self.session.execute(stmt)
 
     async def delete_bulk(self, *filter_, **filter_by):
-        stmt = (
-            delete(self.model)
-            .filter(*filter_)
-            .filter_by(**filter_by)
-        )
+        stmt = delete(self.model).filter(*filter_).filter_by(**filter_by)
         await self.session.execute(stmt)
