@@ -21,6 +21,8 @@ import pytest
     ({"email": "user@example.com", "password": "string"}, 200),
     ({"email": "user@example.com", "password": "string"}, 409),
     ({"email": "new-user@example.com", "password": "string"}, 200),
+    ({"email": "new-user@example", "password": "string"}, 422),
+    ({"email": "new-user", "password": "string"}, 422),
 ])
 async def test_auth(creds, status_code, ac):
     resp_reg = await ac.post("/auth/register", json=creds)
@@ -31,6 +33,8 @@ async def test_auth(creds, status_code, ac):
         resp_login = await ac.post("/auth/login", json=creds)
         assert resp_login.status_code == 200
         assert ac.cookies
+        assert "access_token" in resp_login.json()
+        assert set(resp_login.json()) == {"access_token",}  # new_case: Супер кейс как убедится что только определенные ключи есть в словаре
 
         resp_me = await ac.get("/auth/me")
         assert resp_me.status_code == 200
