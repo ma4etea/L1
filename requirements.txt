@@ -38,6 +38,7 @@ MarkupSafe==3.0.2
 mdurl==0.1.2
 multidict==6.4.4
 mypy_extensions==1.1.0
+nodeenv==1.9.1
 packaging==25.0
 passlib==1.7.4
 pathspec==0.12.1
@@ -52,6 +53,7 @@ pydantic-settings==2.9.1
 pydantic_core==2.33.2
 Pygments==2.19.1
 PyJWT==2.10.1
+pyright==1.1.402
 pytest==8.4.1
 pytest-asyncio==1.0.0
 pytest-dotenv==0.5.2

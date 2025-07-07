@@ -1,10 +1,13 @@
-from sqlalchemy.exc import IntegrityError
+from typing import Sequence
+
+from sqlalchemy.exc import IntegrityError, NoResultFound, DBAPIError
 from sqlalchemy.ext.asyncio import AsyncSession
 from pydantic import BaseModel as BaseSchema
 from src.database import engine, BaseModel
 from fastapi import HTTPException
 from sqlalchemy import select, Insert, delete, update
 
+from src.exeptions import ObjectNotFound, ToBigId, ObjectAlreadyExists
 from src.repositories.mappers.base import DataMapper
 
 
@@ -36,6 +39,17 @@ class BaseRepository:
             return None
         return self.mapper.to_domain(model)
 
+    async def get_one(self, *filter_, **filter_by):
+        query = select(self.model).filter(*filter_).filter_by(**filter_by)
+        try:
+            result = await self.session.execute(query)
+            model = result.scalar_one()
+        except NoResultFound:
+            raise ObjectNotFound
+        except DBAPIError:
+            raise ToBigId
+        return self.mapper.to_domain(model)
+
     async def add(
         self,
         data: BaseSchema,
@@ -45,20 +59,31 @@ class BaseRepository:
 
         try:
             result = await self.session.execute(stmt)
-        except IntegrityError as e:
-            print("UniqueViolationError" in str(e.orig), e.orig)
-            if "users_email_key" in str(e.orig):
-                raise HTTPException(status_code=409)
-            raise HTTPException(status_code=500)
+        except IntegrityError:
+            raise ObjectNotFound
+        except DBAPIError:
+            raise ToBigId
+        # try:
+        #     result = await self.session.execute(stmt)
+        # except IntegrityError as e:
+        #     print("UniqueViolationError" in str(e.orig), e.orig)
+        #     if "users_email_key" in str(e.orig):
+        #         raise ObjectAlreadyExists
+        #     raise HTTPException(status_code=500)
 
         model = result.scalars().one_or_none()
 
         return self.mapper.to_domain(model)
 
-    async def add_bulk(self, data_list: list[BaseSchema]):
+    async def add_bulk(self, data_list: Sequence[BaseSchema]):
         stmt = Insert(self.model).values([data.model_dump() for data in data_list])
         print(stmt.compile(bind=engine, compile_kwargs={"literal_binds": True}))
-        await self.session.execute(stmt)
+        try:
+            await self.session.execute(stmt)
+        except IntegrityError:
+            raise ObjectNotFound
+        except DBAPIError:
+            raise ToBigId
 
     async def edit(self, data: BaseSchema, *filter_, exclude_unset=False, **filter_by):
         query = select(self.model).filter(*filter_).filter_by(**filter_by)

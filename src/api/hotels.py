@@ -3,6 +3,7 @@ from datetime import date
 from fastapi import Query, Body, Path, APIRouter, HTTPException
 
 from src.api.dependecy import DepPagination, DepDB
+from src.exeptions import ObjectNotFound, UnexpectedResultFromDb, ToBigId
 from src.schemas.hotels import HotelPatch, HotelAdd
 
 router = APIRouter(prefix="/hotels", tags=["Отели"])
@@ -17,6 +18,8 @@ async def get_available_hotels(
     title: str | None = Query(None, description="Название отеля"),
     location: str | None = Query(None, description="Локация"),
 ):
+    if date_from <= date_to:
+        raise HTTPException(400, "date_from должно быть больше date_to")
     per_page = pag.per_page or 3
     offset = per_page * pag.page - per_page
     limit = per_page
@@ -82,7 +85,12 @@ async def get_hotel(
     db: DepDB,
     hotel_id: int = Path(),
 ):
-    result = await db.hotels.get_one_none(id=hotel_id)
+    try:
+        result = await db.hotels.get_one(id=hotel_id)
+    except ObjectNotFound:
+        raise HTTPException(404, "Отель не найден")
+    except ToBigId as ex:
+        raise HTTPException(400, ex.details)
     if not result:
         raise HTTPException(status_code=404)
     return result

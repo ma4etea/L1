@@ -2,6 +2,7 @@ from datetime import datetime
 
 from fastapi import APIRouter, Path, HTTPException
 from src.api.dependecy import DepAccess, DepDB
+from src.exeptions import ObjectNotFound, ToBigId
 from src.schemas.facilities import AddRoomsFacilities
 from src.schemas.room import AddRoom, AddRoomToDb, EditRoom
 
@@ -23,21 +24,33 @@ async def get_room(
     hotel_id: int = Path(),
     room_id: int = Path(),
 ):
-    room = await db.rooms.get_room_with(hotel_id=hotel_id, id=room_id)
-    if not room:
-        raise HTTPException(404)
+    try:
+        room = await db.rooms.get_room_with(hotel_id=hotel_id, id=room_id)
+    except ObjectNotFound:
+        raise HTTPException(404, "Комната не найдена")
+    except ToBigId as ex:
+        raise HTTPException(400, ex.details)
     return {"status": "OK", "data": room}
 
 
 @router.post("/{hotel_id}/rooms")
 async def create_room(db: DepDB, room_data: AddRoom, hotel_id: int = Path()):
     new_room_data = AddRoomToDb(**room_data.model_dump(), hotel_id=hotel_id)
+    try:
+        room = await db.rooms.add(new_room_data)
+    except ObjectNotFound:
+        raise HTTPException(404, "Отеля не существует")
+    except ToBigId as ex:
+        raise HTTPException(400, ex.details)
 
-    room = await db.rooms.add(new_room_data)
-
-    await db.rooms_facilities.add_bulk(
-        [AddRoomsFacilities(room_id=room.id, facility_id=id_) for id_ in room_data.facilities_ids]
-    )
+    try:
+        await db.rooms_facilities.add_bulk(
+            [AddRoomsFacilities(room_id=room.id, facility_id=id_) for id_ in room_data.facilities_ids]
+        )
+    except ObjectNotFound:
+        raise HTTPException(404, "Удобства не существует")
+    except ToBigId as ex:
+        raise HTTPException(400, "Большой id для удобства")
 
     await db.commit()
 

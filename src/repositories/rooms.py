@@ -2,9 +2,11 @@ from datetime import date
 
 from pydantic import BaseModel as BaseSchema
 from sqlalchemy import select, delete, literal, union_all, insert, update
+from sqlalchemy.exc import NoResultFound, DBAPIError
 from sqlalchemy.orm import selectinload, joinedload
 
 from src.database import engine
+from src.exeptions import ObjectNotFound, ToBigId
 from src.models.facilities import RoomsFacilitiesORM, FacilitiesOrm
 from src.models.rooms import RoomsOrm
 from src.repositories.base import BaseRepository
@@ -17,12 +19,12 @@ class RoomsRepository(BaseRepository):
     mapper = RoomDataMapper
 
     async def get_available_rooms_shymeyko(
-        self,
-        offset: int,
-        limit: int,
-        date_from: date,
-        date_to: date,
-        hotel_id: int,
+            self,
+            offset: int,
+            limit: int,
+            date_from: date,
+            date_to: date,
+            hotel_id: int,
     ):
         return await self.get_all(
             offset,
@@ -150,8 +152,12 @@ class RoomsRepository(BaseRepository):
 
     async def get_room_with(self, **filter_by):
         query = select(self.model).options(joinedload(self.model.facilities)).filter_by(**filter_by)
-
-        res = await self.session.execute(query)
-        model = res.unique().scalar_one_or_none()
+        try:
+            res = await self.session.execute(query)
+            model = res.unique().scalar_one()
+        except NoResultFound:
+            raise ObjectNotFound
+        except DBAPIError:
+            raise ToBigId
 
         return self.mapper.to_domain(model)

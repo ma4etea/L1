@@ -3,6 +3,7 @@ from datetime import date
 from fastapi import APIRouter, HTTPException, Query
 
 from src.api.dependecy import DepAccess, DepDB, DepPagination
+from src.exeptions import ObjectNotFound, ToBigId, UnexpectedResultFromDb
 from src.schemas.booking import BookingAdd, BookingToDB
 
 router = APIRouter(prefix="/bookings", tags=["Бронирование"])
@@ -10,12 +11,21 @@ router = APIRouter(prefix="/bookings", tags=["Бронирование"])
 
 @router.post("")
 async def add_booking(user_id: DepAccess, db: DepDB, data_booking: BookingAdd):
-    room = await db.rooms.get_one_none(id=data_booking.room_id)
-    if not room:
-        raise HTTPException(404)
+    try:
+        room = await db.rooms.get_one(id=data_booking.room_id)
+    except ObjectNotFound:
+        raise HTTPException(404, "Комната не найдена")
+    except ToBigId as ex:
+        raise HTTPException(400, ex.details)
+
 
     data_to_db = BookingToDB(**data_booking.model_dump(), user_id=user_id, price=room.price)
-    booking = await db.bookings.add_booking(data_to_db)
+    try:
+        booking = await db.bookings.add_booking(data_to_db)
+    except ObjectNotFound:
+        raise HTTPException(409, "Нет свободных комнат")
+    except UnexpectedResultFromDb:
+        raise HTTPException(400, "Ошибка! Мы уже знаем о по проблеме и исправляем её")
     await db.commit()
     return {"status": "ok", "data": booking}
 
@@ -45,6 +55,8 @@ async def get_available_rooms(
     date_to: date,
     hotel_id: int = Query(None),
 ):
+    if date_from <= date_to:
+        raise HTTPException(400, "date_from должно быть больше date_to")
     offset = pag.per_page * pag.page - pag.per_page
     limit = pag.per_page
     rooms_available = await db.bookings.get_available_rooms(
@@ -71,6 +83,8 @@ async def get_available_rooms_shymeyko(
     date_to: date,
     hotel_id: int = Query(None),
 ):
+    if date_from <= date_to:
+        raise HTTPException(400, "date_from должно быть больше date_to")
     offset = pag.per_page * pag.page - pag.per_page
     limit = pag.per_page
     rooms_available = await db.rooms.get_available_rooms_shymeyko(

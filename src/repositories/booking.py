@@ -1,7 +1,9 @@
 from datetime import date
 from fastapi import HTTPException
 from sqlalchemy import select, func
+from sqlalchemy.exc import MultipleResultsFound
 
+from src.exeptions import ObjectNotFound, UnexpectedResultFromDb
 from src.models.bookings import BookingsOrm
 from src.models.rooms import RoomsOrm
 from src.repositories.base import BaseRepository
@@ -143,8 +145,12 @@ class BookingsRepository(BaseRepository):
                 room_id=data.room_id, date_from=data.date_from, date_to=data.date_to
             )
         )
-        is_available = res.scalar_one_or_none()  # new_case: scalar_one_or_none будет ошибка MultipleResultsFound если больше одной строки, так как ожидается одна строка помогает в отладке, если вдруг вернете больше одной строки
+        try:
+            is_available = res.scalar_one_or_none()  # new_case: scalar_one_or_none будет ошибка MultipleResultsFound если больше одной строки, так как ожидается одна строка помогает в отладке, если вдруг вернете больше одной строки
+        except MultipleResultsFound:
+            print("Вернулось более одной строки из базы")
+            raise UnexpectedResultFromDb
         if not is_available:
-            raise HTTPException(409, "Нет свободных комнат")
+            raise ObjectNotFound
         model = await self.add(data)
         return model
