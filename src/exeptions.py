@@ -1,3 +1,8 @@
+from datetime import date
+
+from fastapi import HTTPException
+
+
 class MyAppExceptions(Exception):
     details = "Неизвестная ошибка"
 
@@ -19,3 +24,28 @@ class UnexpectedResultFromDb(MyAppExceptions):
 
 class ObjectAlreadyExists(MyAppExceptions):
     details = "Объект уже существует"
+
+
+def check_data_from_after_date_to(date_from: date, date_to: date):
+    if date_from <= date_to:
+        raise HTTPException(422, "date_from должно быть больше date_to")
+
+
+class MyAppHTTPException(HTTPException):
+    status_code = 500
+    details = "Ошибка сервера"
+    def __init__(self):
+
+        super().__init__(status_code = self.status_code, detail=self.details)
+
+class HotelNotFoundHTTPException(MyAppHTTPException):
+    status_code = 404
+    details = "Отель не найден"
+
+class RoomNotFoundHTTPException(MyAppHTTPException):
+    status_code = 404
+    details = "Номер не найден"
+
+class ToBigIdHTTPException(MyAppHTTPException):
+    status_code = 400
+    details = "ИД слишком большой"

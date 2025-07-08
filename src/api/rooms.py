@@ -2,7 +2,8 @@ from datetime import datetime
 
 from fastapi import APIRouter, Path, HTTPException
 from src.api.dependecy import DepAccess, DepDB
-from src.exeptions import ObjectNotFound, ToBigId
+from src.exeptions import ObjectNotFound, ToBigId, ToBigIdHTTPException, RoomNotFoundHTTPException, \
+    HotelNotFoundHTTPException
 from src.schemas.facilities import AddRoomsFacilities
 from src.schemas.room import AddRoom, AddRoomToDb, EditRoom
 
@@ -27,9 +28,9 @@ async def get_room(
     try:
         room = await db.rooms.get_room_with(hotel_id=hotel_id, id=room_id)
     except ObjectNotFound:
-        raise HTTPException(404, "Комната не найдена")
+        raise RoomNotFoundHTTPException
     except ToBigId as ex:
-        raise HTTPException(400, ex.details)
+        raise ToBigIdHTTPException
     return {"status": "OK", "data": room}
 
 
@@ -39,9 +40,9 @@ async def create_room(db: DepDB, room_data: AddRoom, hotel_id: int = Path()):
     try:
         room = await db.rooms.add(new_room_data)
     except ObjectNotFound:
-        raise HTTPException(404, "Отеля не существует")
+        raise HotelNotFoundHTTPException
     except ToBigId as ex:
-        raise HTTPException(400, ex.details)
+        raise ToBigIdHTTPException
 
     try:
         await db.rooms_facilities.add_bulk(
@@ -70,9 +71,9 @@ async def remove_room(
     try:
         await db.rooms.delete(hotel_id=hotel_id, id=room_id)
     except ObjectNotFound:
-        raise HTTPException(404, "Комната не найдена")
+        raise RoomNotFoundHTTPException
     except ToBigId as ex:
-        raise HTTPException(400, ex.details)
+        raise ToBigIdHTTPException
     await db.commit()
 
     return {"status": "OK"}
@@ -90,9 +91,9 @@ async def update_room(
     try:
         room = await db.rooms.edit_room(room_data, hotel_id=hotel_id, room_id=room_id)
     except ObjectNotFound:
-        raise HTTPException(404, "Комната не найдена")
+        raise RoomNotFoundHTTPException
     except ToBigId as ex:
-        raise HTTPException(400, ex.details)
+        raise ToBigIdHTTPException
 
     end_data = datetime.now()
     print(end_data - start_data)

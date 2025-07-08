@@ -3,7 +3,7 @@ from datetime import date
 from fastapi import Query, Body, Path, APIRouter, HTTPException
 
 from src.api.dependecy import DepPagination, DepDB
-from src.exeptions import ObjectNotFound, UnexpectedResultFromDb, ToBigId
+from src.exeptions import ObjectNotFound, UnexpectedResultFromDb, ToBigId, ToBigIdHTTPException
 from src.schemas.hotels import HotelPatch, HotelAdd
 
 router = APIRouter(prefix="/hotels", tags=["Отели"])
@@ -90,7 +90,7 @@ async def get_hotel(
     except ObjectNotFound:
         raise HTTPException(404, "Отель не найден")
     except ToBigId as ex:
-        raise HTTPException(400, ex.details)
+        raise ToBigIdHTTPException
     if not result:
         raise HTTPException(status_code=404)
     return result
