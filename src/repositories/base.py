@@ -1,6 +1,7 @@
+import logging
 from typing import Sequence
 
-from asyncpg import UniqueViolationError
+from asyncpg import UniqueViolationError, CheckViolationError
 from sqlalchemy.exc import IntegrityError, NoResultFound, DBAPIError
 from sqlalchemy.ext.asyncio import AsyncSession
 from pydantic import BaseModel as BaseSchema
@@ -56,27 +57,31 @@ class BaseRepository:
         data: BaseSchema,
     ):
         stmt = Insert(self.model).values(**data.model_dump()).returning(self.model)
-        # result = await self.session.execute(stmt)
-        # print(stmt.compile(bind=engine, compile_kwargs={"literal_binds": True}))
-
-        # try:
-        #     result = await self.session.execute(stmt)
-        # # except IntegrityError:
-        # #     raise ObjectNotFound
-        # except DBAPIError:
-        #     raise ToBigId
         try:
             result = await self.session.execute(stmt)
-        except IntegrityError as ex:
-            # new_case: Так можно безопасно доставать вложеные(обернутые ошибки)
-            cause = getattr(ex.orig, "__cause__", None)  # new_case: безопасная проверка что атрибут есть ex.orig.__cause__
-            if isinstance(ex.orig, UniqueViolationError) or isinstance(cause, UniqueViolationError):  # new_case: вместо cause можно ex.orig.__cause__ но это не безопасный доступ
-                raise ObjectAlreadyExists
-            raise ex
+            model = result.scalars().one_or_none()
+            return self.mapper.to_domain(model)
+        except IntegrityError as exc:
+            # # new_case: Так можно безопасно доставать вложеные(обернутые ошибки)
+            # cause = getattr(exc.orig, "__cause__", None)  # new_case: безопасная проверка что атрибут есть ex.orig.__cause__
+            # if isinstance(exc.orig, UniqueViolationError) or isinstance(cause, UniqueViolationError):  # new_case: вместо cause можно ex.orig.__cause__ но это не безопасный доступ
+            #     raise ObjectAlreadyExists
 
-        model = result.scalars().one_or_none()
+            logging.error(f"Вывод exc: {type(exc).__name__}: {exc}")
+            logging.error("------------------------------------------------------")
+            logging.error(f"Вывод exc.orig: {type(exc).__name__}: {exc.orig}")
+            logging.error("------------------------------------------------------")
+            logging.error(f"Вывод exc.__context__: {type(exc).__name__}: {exc.__context__}")
+            logging.error("------------------------------------------------------")
+            logging.error(f"Вывод exc.__cause__: {type(exc).__name__}: {exc.__cause__}")
+            logging.error("------------------------------------------------------")
+            logging.error(f"Вывод exc.orig.__cause__: {type(exc).__name__}: {exc.orig.__cause__}")
+            raise exc
 
-        return self.mapper.to_domain(model)
+
+
+
+
 
     async def add_bulk(self, data_list: Sequence[BaseSchema]):
         stmt = Insert(self.model).values([data.model_dump() for data in data_list])

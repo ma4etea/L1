@@ -29,7 +29,7 @@ async def get_room(
         room = await db.rooms.get_room_with(hotel_id=hotel_id, id=room_id)
     except ObjectNotFound:
         raise RoomNotFoundHTTPException
-    except ToBigId as ex:
+    except ToBigId as exc:
         raise ToBigIdHTTPException
     return {"status": "OK", "data": room}
 
@@ -41,7 +41,7 @@ async def create_room(db: DepDB, room_data: AddRoom, hotel_id: int = Path()):
         room = await db.rooms.add(new_room_data)
     except ObjectNotFound:
         raise HotelNotFoundHTTPException
-    except ToBigId as ex:
+    except ToBigId as exc:
         raise ToBigIdHTTPException
 
     try:
@@ -50,7 +50,7 @@ async def create_room(db: DepDB, room_data: AddRoom, hotel_id: int = Path()):
         )
     except ObjectNotFound:
         raise HTTPException(404, "Удобства не существует")
-    except ToBigId as ex:
+    except ToBigId as exc:
         raise HTTPException(400, "Большой id для удобства")
 
     await db.commit()
@@ -72,7 +72,7 @@ async def remove_room(
         await db.rooms.delete(hotel_id=hotel_id, id=room_id)
     except ObjectNotFound:
         raise RoomNotFoundHTTPException
-    except ToBigId as ex:
+    except ToBigId as exc:
         raise ToBigIdHTTPException
     await db.commit()
 
@@ -92,7 +92,7 @@ async def update_room(
         room = await db.rooms.edit_room(room_data, hotel_id=hotel_id, room_id=room_id)
     except ObjectNotFound:
         raise RoomNotFoundHTTPException
-    except ToBigId as ex:
+    except ToBigId as exc:
         raise ToBigIdHTTPException
 
     end_data = datetime.now()

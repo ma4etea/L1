@@ -89,7 +89,7 @@ async def get_hotel(
         result = await db.hotels.get_one(id=hotel_id)
     except ObjectNotFound:
         raise HTTPException(404, "Отель не найден")
-    except ToBigId as ex:
+    except ToBigId as exc:
         raise ToBigIdHTTPException
     if not result:
         raise HTTPException(status_code=404)

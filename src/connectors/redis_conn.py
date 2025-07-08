@@ -1,3 +1,5 @@
+import logging
+
 from redis.asyncio import Redis
 
 from src.config import settings
@@ -11,8 +13,11 @@ class RedisManager:
         self.port = port
 
     async def connect(self):
-        self.redis_client = Redis(host=self.host, port=self.port, decode_responses=True)
-        print("Redis подключен")
+        try:
+            self.redis_client = Redis(host=self.host, port=self.port, decode_responses=True)
+            logging.info("Успешное подключение к Redis")
+        except Exception as exc:
+            logging.error(f"Ошибка подключения к Redis: {type(exc).__name__}: {exc}")
 
     async def set(self, key: str, value: str, ex: int | None = None) -> bool:
         if self.redis_client is None:

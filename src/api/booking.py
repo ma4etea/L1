@@ -16,7 +16,7 @@ async def add_booking(user_id: DepAccess, db: DepDB, data_booking: BookingAdd):
         room = await db.rooms.get_one(id=data_booking.room_id)
     except ObjectNotFound:
         raise RoomNotFoundHTTPException
-    except ToBigId as ex:
+    except ToBigId as exc:
         raise ToBigIdHTTPException
 
 
