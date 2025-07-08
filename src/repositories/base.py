@@ -63,9 +63,9 @@ class BaseRepository:
             return self.mapper.to_domain(model)
         except IntegrityError as exc:
             # # new_case: Так можно безопасно доставать вложеные(обернутые ошибки)
-            # cause = getattr(exc.orig, "__cause__", None)  # new_case: безопасная проверка что атрибут есть ex.orig.__cause__
-            # if isinstance(exc.orig, UniqueViolationError) or isinstance(cause, UniqueViolationError):  # new_case: вместо cause можно ex.orig.__cause__ но это не безопасный доступ
-            #     raise ObjectAlreadyExists
+            cause = getattr(exc.orig, "__cause__", None)  # new_case: безопасная проверка что атрибут есть ex.orig.__cause__
+            if isinstance(exc.orig, UniqueViolationError) or isinstance(cause, UniqueViolationError):  # new_case: вместо cause можно ex.orig.__cause__ но это не безопасный доступ
+                raise ObjectAlreadyExists
 
             logging.error(f"Вывод exc: {type(exc).__name__}: {exc}")
             logging.error("------------------------------------------------------")
