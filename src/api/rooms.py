@@ -67,7 +67,12 @@ async def remove_room(
     hotel_id: int = Path(),
     room_id: int = Path(),
 ):
-    await db.rooms.delete(hotel_id=hotel_id, id=room_id)
+    try:
+        await db.rooms.delete(hotel_id=hotel_id, id=room_id)
+    except ObjectNotFound:
+        raise HTTPException(404, "Комната не найдена")
+    except ToBigId as ex:
+        raise HTTPException(400, ex.details)
     await db.commit()
 
     return {"status": "OK"}
@@ -82,8 +87,12 @@ async def update_room(
     room_id: int = Path(),
 ):
     start_data = datetime.now()
-    room = await db.rooms.edit_room(room_data, hotel_id=hotel_id, room_id=room_id)
-    await db.commit()
+    try:
+        room = await db.rooms.edit_room(room_data, hotel_id=hotel_id, room_id=room_id)
+    except ObjectNotFound:
+        raise HTTPException(404, "Комната не найдена")
+    except ToBigId as ex:
+        raise HTTPException(400, ex.details)
 
     end_data = datetime.now()
     print(end_data - start_data)

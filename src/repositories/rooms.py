@@ -2,7 +2,7 @@ from datetime import date
 
 from pydantic import BaseModel as BaseSchema
 from sqlalchemy import select, delete, literal, union_all, insert, update
-from sqlalchemy.exc import NoResultFound, DBAPIError
+from sqlalchemy.exc import NoResultFound, DBAPIError, IntegrityError
 from sqlalchemy.orm import selectinload, joinedload
 
 from src.database import engine
@@ -135,7 +135,13 @@ class RoomsRepository(BaseRepository):
 
         print(stmt.compile(bind=engine, compile_kwargs={"literal_binds": True}))
 
-        result = await self.session.execute(stmt)
+        """IntegrityError, DBAPIError"""
+        try:
+            result = await self.session.execute(stmt)
+        except IntegrityError:
+            raise ObjectNotFound
+        except DBAPIError:
+            raise ToBigId
         room_orm = result.scalar()
 
         return self.mapper.to_domain(room_orm)

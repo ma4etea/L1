@@ -108,16 +108,7 @@ class BaseRepository:
         return self.mapper.to_domain(model)
 
     async def delete(self, **filter_by):
-        query = select(self.model).filter_by(**filter_by)
-        result = await self.session.execute(query)
-        result_orm = result.scalars().all()
-        if len(result_orm) > 1:
-            await self.session.rollback()
-            raise HTTPException(status_code=422)
-        if len(result_orm) < 1:
-            await self.session.rollback()
-            raise HTTPException(status_code=404)
-
+        await self.get_one(**filter_by)
         stmt = delete(self.model).filter_by(**filter_by)
         print(stmt.compile(bind=engine, compile_kwargs={"literal_binds": True}))
         await self.session.execute(stmt)
