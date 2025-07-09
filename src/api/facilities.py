@@ -10,7 +10,7 @@ from src.schemas.facilities import AddFacility
 
 router = APIRouter(prefix="/facilities", tags=["Удобства"])
 
-
+# todo продолжить тут
 @router.post("")
 async def create_facility(user_id: DepAccess, db: DepDB, data_facility: AddFacility):
     task1.delay()
