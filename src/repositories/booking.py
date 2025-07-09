@@ -1,8 +1,8 @@
 from datetime import date
 from sqlalchemy import select, func
-from sqlalchemy.exc import MultipleResultsFound
+from sqlalchemy.exc import MultipleResultsFound, DBAPIError
 
-from src.exceptions.exeptions import ObjectNotFoundException, UnexpectedResultFromDbException
+from src.exceptions.exeptions import ObjectNotFoundException, UnexpectedResultFromDbException, NoAvailableRoom
 from src.models.bookings import BookingsOrm
 from src.models.rooms import RoomsOrm
 from src.repositories.base import BaseRepository
@@ -16,12 +16,12 @@ class BookingsRepository(BaseRepository):
     mapper = BookingDataMapper
 
     async def get_available_rooms(
-        self,
-        offset: int,
-        limit: int,
-        date_from: date,
-        date_to: date,
-        hotel_id: int = None,
+            self,
+            offset: int,
+            limit: int,
+            date_from: date,
+            date_to: date,
+            hotel_id: int = None,
     ):
         """
         with rooms_booked_count as (
@@ -139,17 +139,18 @@ class BookingsRepository(BaseRepository):
         return [self.mapper.to_domain(model) for model in res.scalars().all()]
 
     async def add_booking(self, data: BookingToDB):
-        res = await self.session.execute(
-            check_rooms_available(
-                room_id=data.room_id, date_from=data.date_from, date_to=data.date_to
-            )
-        )
+
         try:
-            is_available = res.scalar_one_or_none()  # new_case: scalar_one_or_none будет ошибка MultipleResultsFound если больше одной строки, так как ожидается одна строка помогает в отладке, если вдруг вернете больше одной строки
-        except MultipleResultsFound:
-            print("Вернулось более одной строки из базы")
-            raise UnexpectedResultFromDbException
+            res = await self.session.execute(
+                check_rooms_available(
+                    room_id=data.room_id, date_from=data.date_from, date_to=data.date_to
+                )
+            )
+            is_available = res.scalar_one()
+        except DBAPIError as exc:
+            raise exc
         if not is_available:
-            raise ObjectNotFoundException
+            raise NoAvailableRoom
         model = await self.add(data)
         return model
+

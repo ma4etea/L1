@@ -3,10 +3,12 @@ from datetime import date
 from fastapi import APIRouter, HTTPException, Query
 
 from src.api.dependecy import DepAccess, DepDB, DepPagination
-from src.exceptions.exeptions import ObjectNotFoundException, ToBigIdException, UnexpectedResultFromDbException
+from src.exceptions.exeptions import ObjectNotFoundException, ToBigIdException, UnexpectedResultFromDbException, \
+    NoAvailableRoom
 from src.exceptions.utils import check_data_from_after_date_to_http_exc
-from src.exceptions.http_exeptions import RoomNotFoundHTTPException, ToBigIdHTTPException
+from src.exceptions.http_exeptions import RoomNotFoundHTTPException, ToBigIdHTTPException, NoAvailableRoomHTTPException
 from src.schemas.booking import BookingAdd, BookingToDB
+from src.services.booking import BookingService
 
 router = APIRouter(prefix="/bookings", tags=["Бронирование"])
 
@@ -14,21 +16,13 @@ router = APIRouter(prefix="/bookings", tags=["Бронирование"])
 @router.post("")
 async def add_booking(user_id: DepAccess, db: DepDB, data_booking: BookingAdd):
     try:
-        room = await db.rooms.get_one(id=data_booking.room_id)
+        booking = await BookingService(db).add_booking(user_id, data_booking)
     except ObjectNotFoundException:
         raise RoomNotFoundHTTPException
-    except ToBigIdException as exc:
+    except ToBigIdException:
         raise ToBigIdHTTPException
-
-
-    data_to_db = BookingToDB(**data_booking.model_dump(), user_id=user_id, price=room.price)
-    try:
-        booking = await db.bookings.add_booking(data_to_db)
-    except ObjectNotFoundException:
-        raise HTTPException(409, "Нет свободных комнат")
-    except UnexpectedResultFromDbException:
-        raise HTTPException(400, "Ошибка! Мы уже знаем о по проблеме и исправляем её")
-    await db.commit()
+    except NoAvailableRoom:
+        raise NoAvailableRoomHTTPException
     return {"status": "ok", "data": booking}
 
 

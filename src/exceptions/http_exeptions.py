@@ -47,3 +47,7 @@ class ToBigIdHTTPException(MyAppHTTPException):
 class InvalidCredentialsHTTPException(MyAppHTTPException):
     status_code = 401
     details = "Неверные логин и/или пароль"
+
+class NoAvailableRoomHTTPException(MyAppHTTPException):
+    status_code = 409
+    details = "Нет доступного номера для бронирования"

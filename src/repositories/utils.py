@@ -76,6 +76,15 @@ def check_rooms_available(
     room_id: int,
 ):
     """
+    stmt запрос
+    Проверяет есть ли доступные комнаты для бронирования по room_id
+    :param date_from:
+    :param date_to:
+    :param room_id:
+    :return bool | None:
+    """
+
+    """
     WITH rooms_booked_count AS (
     SELECT b.room_id AS room_id, COUNT(*) AS booked
     FROM bookings b

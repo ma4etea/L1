@@ -51,3 +51,6 @@ class UnexpectedResultFromDbException(MyAppException):
 
 class InvalidCredentialsException(MyAppException):
     details = "Неверные данные авторизации"
+
+class NoAvailableRoom(MyAppException):
+    details = "Нет доступного номера"
