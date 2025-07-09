@@ -2,8 +2,8 @@ from datetime import datetime
 
 from fastapi import APIRouter, Path, HTTPException
 from src.api.dependecy import DepAccess, DepDB
-from src.exeptions import ObjectNotFound, ToBigId, ToBigIdHTTPException, RoomNotFoundHTTPException, \
-    HotelNotFoundHTTPException
+from src.exceptions.exeptions import ObjectNotFoundException, ToBigIdException
+from src.exceptions.http_exeptions import HotelNotFoundHTTPException, RoomNotFoundHTTPException, ToBigIdHTTPException
 from src.schemas.facilities import AddRoomsFacilities
 from src.schemas.room import AddRoom, AddRoomToDb, EditRoom
 
@@ -27,9 +27,9 @@ async def get_room(
 ):
     try:
         room = await db.rooms.get_room_with(hotel_id=hotel_id, id=room_id)
-    except ObjectNotFound:
+    except ObjectNotFoundException:
         raise RoomNotFoundHTTPException
-    except ToBigId as exc:
+    except ToBigIdException as exc:
         raise ToBigIdHTTPException
     return {"status": "OK", "data": room}
 
@@ -39,18 +39,18 @@ async def create_room(db: DepDB, room_data: AddRoom, hotel_id: int = Path()):
     new_room_data = AddRoomToDb(**room_data.model_dump(), hotel_id=hotel_id)
     try:
         room = await db.rooms.add(new_room_data)
-    except ObjectNotFound:
+    except ObjectNotFoundException:
         raise HotelNotFoundHTTPException
-    except ToBigId as exc:
+    except ToBigIdException as exc:
         raise ToBigIdHTTPException
 
     try:
         await db.rooms_facilities.add_bulk(
             [AddRoomsFacilities(room_id=room.id, facility_id=id_) for id_ in room_data.facilities_ids]
         )
-    except ObjectNotFound:
+    except ObjectNotFoundException:
         raise HTTPException(404, "Удобства не существует")
-    except ToBigId as exc:
+    except ToBigIdException as exc:
         raise HTTPException(400, "Большой id для удобства")
 
     await db.commit()
@@ -70,9 +70,9 @@ async def remove_room(
 ):
     try:
         await db.rooms.delete(hotel_id=hotel_id, id=room_id)
-    except ObjectNotFound:
+    except ObjectNotFoundException:
         raise RoomNotFoundHTTPException
-    except ToBigId as exc:
+    except ToBigIdException as exc:
         raise ToBigIdHTTPException
     await db.commit()
 
@@ -90,9 +90,9 @@ async def update_room(
     start_data = datetime.now()
     try:
         room = await db.rooms.edit_room(room_data, hotel_id=hotel_id, room_id=room_id)
-    except ObjectNotFound:
+    except ObjectNotFoundException:
         raise RoomNotFoundHTTPException
-    except ToBigId as exc:
+    except ToBigIdException as exc:
         raise ToBigIdHTTPException
 
     end_data = datetime.now()

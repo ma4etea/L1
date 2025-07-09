@@ -6,7 +6,7 @@ from sqlalchemy.exc import NoResultFound, DBAPIError, IntegrityError
 from sqlalchemy.orm import selectinload, joinedload
 
 from src.database import engine
-from src.exeptions import ObjectNotFound, ToBigId
+from src.exceptions.exeptions import ObjectNotFoundException, ToBigIdException
 from src.models.facilities import RoomsFacilitiesORM, FacilitiesOrm
 from src.models.rooms import RoomsOrm
 from src.repositories.base import BaseRepository
@@ -139,9 +139,9 @@ class RoomsRepository(BaseRepository):
         try:
             result = await self.session.execute(stmt)
         except IntegrityError:
-            raise ObjectNotFound
+            raise ObjectNotFoundException
         except DBAPIError:
-            raise ToBigId
+            raise ToBigIdException
         room_orm = result.scalar()
 
         return self.mapper.to_domain(room_orm)
@@ -162,8 +162,8 @@ class RoomsRepository(BaseRepository):
             res = await self.session.execute(query)
             model = res.unique().scalar_one()
         except NoResultFound:
-            raise ObjectNotFound
+            raise ObjectNotFoundException
         except DBAPIError:
-            raise ToBigId
+            raise ToBigIdException
 
         return self.mapper.to_domain(model)

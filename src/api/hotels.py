@@ -1,13 +1,27 @@
 from datetime import date
 
-from fastapi import Query, Body, Path, APIRouter, HTTPException
+from fastapi import Query, Body, Path, APIRouter
 
 from src.api.dependecy import DepPagination, DepDB
-from src.exeptions import ObjectNotFound, UnexpectedResultFromDb, ToBigId, ToBigIdHTTPException
+from src.exceptions.exeptions import ToBigIdException, \
+    HotelNotFoundException
+from src.exceptions.utils import check_data_from_after_date_to_http_exc
+from src.exceptions.http_exeptions import HotelNotFoundHTTPException, ToBigIdHTTPException
 from src.schemas.hotels import HotelPatch, HotelAdd
+from src.services.hotels import HotelService
 
 router = APIRouter(prefix="/hotels", tags=["Отели"])
 
+openapi_hotel_examples = {
+            "1": {
+                "summary": "Дубай",
+                "value": {"title": "Дубай мубай", "location": "sjdhisu"},
+            },
+            "2": {
+                "summary": "Сочи",
+                "value": {"title": "Сочи мочи", "location": "sjdhisu"},
+            },
+        }
 
 @router.get("")
 async def get_available_hotels(
@@ -18,44 +32,40 @@ async def get_available_hotels(
     title: str | None = Query(None, description="Название отеля"),
     location: str | None = Query(None, description="Локация"),
 ):
-    if date_from <= date_to:
-        raise HTTPException(400, "date_from должно быть больше date_to")
-    per_page = pag.per_page or 3
-    offset = per_page * pag.page - per_page
-    limit = per_page
+    check_data_from_after_date_to_http_exc(date_from=date_from, date_to=date_to)
 
-    return await db.hotels.get_available_hotels(
-        title, location, offset, limit, date_from=date_from, date_to=date_to
+    hotels = await HotelService(db).get_available_hotels(
+    date_from,
+    date_to,
+    pag,
+    title,
+    location,
     )
+    return hotels
 
 
 @router.post("")
 async def add_hotel(
     db: DepDB,
     hotel_data: HotelAdd = Body(
-        openapi_examples={
-            "1": {
-                "summary": "Дубай",
-                "value": {"title": "Дубай мубай", "location": "sjdhisu"},
-            },
-            "2": {
-                "summary": "Сочи",
-                "value": {"title": "Сочи мочи", "location": "sjdhisu"},
-            },
-        }
+        openapi_examples=openapi_hotel_examples
     ),
 ):
-    hotel = await db.hotels.add(hotel_data)
-    await db.commit()
-
+    hotel = await HotelService(db).add_hotel(hotel_data)
     return {"status": "ok", "data": hotel}
 
 
 @router.delete("/{hotel_id}")
 async def delete_hotel(db: DepDB, hotel_id: int = Path()):
-    await db.hotels.delete(id=hotel_id)
-    await db.commit()
-    return {"status": "OK"}
+    try:
+        await HotelService(db).delete_hotel(hotel_id)
+        return {"status": "OK"}
+    except HotelNotFoundException:
+        raise HotelNotFoundHTTPException
+    except ToBigIdException:
+        raise ToBigIdHTTPException
+
+
 
 
 @router.patch("/{hotel_id}")
@@ -86,11 +96,9 @@ async def get_hotel(
     hotel_id: int = Path(),
 ):
     try:
-        result = await db.hotels.get_one(id=hotel_id)
-    except ObjectNotFound:
-        raise HTTPException(404, "Отель не найден")
-    except ToBigId as exc:
+        result = await HotelService(db).get_hotel(hotel_id)
+    except HotelNotFoundException:
+        raise HotelNotFoundHTTPException
+    except ToBigIdException:
         raise ToBigIdHTTPException
-    if not result:
-        raise HTTPException(status_code=404)
     return result

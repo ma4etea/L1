@@ -1,9 +1,8 @@
 from datetime import date
-from fastapi import HTTPException
 from sqlalchemy import select, func
 from sqlalchemy.exc import MultipleResultsFound
 
-from src.exeptions import ObjectNotFound, UnexpectedResultFromDb
+from src.exceptions.exeptions import ObjectNotFoundException, UnexpectedResultFromDbException
 from src.models.bookings import BookingsOrm
 from src.models.rooms import RoomsOrm
 from src.repositories.base import BaseRepository
@@ -149,8 +148,8 @@ class BookingsRepository(BaseRepository):
             is_available = res.scalar_one_or_none()  # new_case: scalar_one_or_none будет ошибка MultipleResultsFound если больше одной строки, так как ожидается одна строка помогает в отладке, если вдруг вернете больше одной строки
         except MultipleResultsFound:
             print("Вернулось более одной строки из базы")
-            raise UnexpectedResultFromDb
+            raise UnexpectedResultFromDbException
         if not is_available:
-            raise ObjectNotFound
+            raise ObjectNotFoundException
         model = await self.add(data)
         return model

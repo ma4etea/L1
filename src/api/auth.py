@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException, Response
 
 from src.api.dependecy import DepAccess, DepDB
-from src.exeptions import ObjectAlreadyExists
+from src.exceptions.exeptions import ObjectAlreadyExistsException
 from src.schemas.users import UserReg, UserAdd
 from src.services.auth import Authservice
 
@@ -14,7 +14,7 @@ async def register_user(db: DepDB, data: UserReg):
     new_data_user = UserAdd(email=data.email, hashed_password=hashed_password)
     try:
         await db.auth.add(new_data_user)
-    except ObjectAlreadyExists:
+    except ObjectAlreadyExistsException:
         raise HTTPException(409, "Пользователь уже существует")
 
     await db.commit()

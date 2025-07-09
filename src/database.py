@@ -4,7 +4,6 @@ from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 from sqlalchemy.orm import DeclarativeBase
 
 from src.config import settings
-from src.exeptions import ObjectNotFound
 
 params = {}  # new_case: подмена engine для тестов
 if settings.MODE == "test":

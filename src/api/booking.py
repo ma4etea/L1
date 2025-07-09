@@ -3,8 +3,9 @@ from datetime import date
 from fastapi import APIRouter, HTTPException, Query
 
 from src.api.dependecy import DepAccess, DepDB, DepPagination
-from src.exeptions import ObjectNotFound, ToBigId, UnexpectedResultFromDb, check_data_from_after_date_to, \
-    RoomNotFoundHTTPException, ToBigIdHTTPException
+from src.exceptions.exeptions import ObjectNotFoundException, ToBigIdException, UnexpectedResultFromDbException
+from src.exceptions.utils import check_data_from_after_date_to_http_exc
+from src.exceptions.http_exeptions import RoomNotFoundHTTPException, ToBigIdHTTPException
 from src.schemas.booking import BookingAdd, BookingToDB
 
 router = APIRouter(prefix="/bookings", tags=["Бронирование"])
@@ -14,18 +15,18 @@ router = APIRouter(prefix="/bookings", tags=["Бронирование"])
 async def add_booking(user_id: DepAccess, db: DepDB, data_booking: BookingAdd):
     try:
         room = await db.rooms.get_one(id=data_booking.room_id)
-    except ObjectNotFound:
+    except ObjectNotFoundException:
         raise RoomNotFoundHTTPException
-    except ToBigId as exc:
+    except ToBigIdException as exc:
         raise ToBigIdHTTPException
 
 
     data_to_db = BookingToDB(**data_booking.model_dump(), user_id=user_id, price=room.price)
     try:
         booking = await db.bookings.add_booking(data_to_db)
-    except ObjectNotFound:
+    except ObjectNotFoundException:
         raise HTTPException(409, "Нет свободных комнат")
-    except UnexpectedResultFromDb:
+    except UnexpectedResultFromDbException:
         raise HTTPException(400, "Ошибка! Мы уже знаем о по проблеме и исправляем её")
     await db.commit()
     return {"status": "ok", "data": booking}
@@ -56,7 +57,7 @@ async def get_available_rooms(
     date_to: date,
     hotel_id: int = Query(None),
 ):
-    check_data_from_after_date_to(date_from=date_from, date_to=date_to)
+    check_data_from_after_date_to_http_exc(date_from=date_from, date_to=date_to)
 
     offset = pag.per_page * pag.page - pag.per_page
     limit = pag.per_page
@@ -84,7 +85,7 @@ async def get_available_rooms_shymeyko(
     date_to: date,
     hotel_id: int = Query(None),
 ):
-    check_data_from_after_date_to(date_from=date_from, date_to=date_to)
+    check_data_from_after_date_to_http_exc(date_from=date_from, date_to=date_to)
     offset = pag.per_page * pag.page - pag.per_page
     limit = pag.per_page
     rooms_available = await db.rooms.get_available_rooms_shymeyko(

@@ -1,7 +1,7 @@
 import logging
 from typing import Sequence
 
-from asyncpg import UniqueViolationError, CheckViolationError
+from asyncpg import UniqueViolationError
 from sqlalchemy.exc import IntegrityError, NoResultFound, DBAPIError
 from sqlalchemy.ext.asyncio import AsyncSession
 from pydantic import BaseModel as BaseSchema
@@ -9,7 +9,7 @@ from src.database import engine, BaseModel
 from fastapi import HTTPException
 from sqlalchemy import select, Insert, delete, update
 
-from src.exeptions import ObjectNotFound, ToBigId, ObjectAlreadyExists
+from src.exceptions.exeptions import ObjectNotFoundException, ToBigIdException, ObjectAlreadyExistsException
 from src.repositories.mappers.base import DataMapper
 
 
@@ -47,9 +47,9 @@ class BaseRepository:
             result = await self.session.execute(query)
             model = result.scalar_one()
         except NoResultFound:
-            raise ObjectNotFound
+            raise ObjectNotFoundException
         except DBAPIError:
-            raise ToBigId
+            raise ToBigIdException
         return self.mapper.to_domain(model)
 
     async def add(
@@ -65,7 +65,7 @@ class BaseRepository:
             # # new_case: Так можно безопасно доставать вложеные(обернутые ошибки)
             cause = getattr(exc.orig, "__cause__", None)  # new_case: безопасная проверка что атрибут есть ex.orig.__cause__
             if isinstance(exc.orig, UniqueViolationError) or isinstance(cause, UniqueViolationError):  # new_case: вместо cause можно ex.orig.__cause__ но это не безопасный доступ
-                raise ObjectAlreadyExists
+                raise ObjectAlreadyExistsException
 
             logging.error(f"Вывод exc: {type(exc).__name__}: {exc}")
             logging.error("------------------------------------------------------")
@@ -89,9 +89,9 @@ class BaseRepository:
         try:
             await self.session.execute(stmt)
         except IntegrityError:
-            raise ObjectNotFound
+            raise ObjectNotFoundException
         except DBAPIError:
-            raise ToBigId
+            raise ToBigIdException
 
     async def edit(self, data: BaseSchema, *filter_, exclude_unset=False, **filter_by):
         query = select(self.model).filter(*filter_).filter_by(**filter_by)
@@ -118,7 +118,7 @@ class BaseRepository:
     async def delete(self, **filter_by):
         await self.get_one(**filter_by)
         stmt = delete(self.model).filter_by(**filter_by)
-        print(stmt.compile(bind=engine, compile_kwargs={"literal_binds": True}))
+        logging.debug(stmt.compile(bind=engine, compile_kwargs={"literal_binds": True}))
         await self.session.execute(stmt)
 
     async def delete_bulk(self, *filter_, **filter_by):
