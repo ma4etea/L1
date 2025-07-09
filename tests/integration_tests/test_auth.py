@@ -1,11 +1,11 @@
 
-from src.services.auth import Authservice
+from src.services.auth import AuthService
 
 
 def test_create_access_token():
     user_id: int = 1
-    jwt_token = Authservice().create_access_token(id=user_id)
+    jwt_token = AuthService().create_access_token(id=user_id)
     assert jwt_token and isinstance(jwt_token, str)
 
-    payload = Authservice().jwt_decode(jwt_token)
+    payload = AuthService().jwt_decode(jwt_token)
     assert payload["id"] == user_id

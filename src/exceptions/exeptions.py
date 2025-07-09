@@ -32,6 +32,16 @@ class FacilityNotFoundException(ObjectNotFoundException):
 
 # -----------------------------------------------------------------------
 
+class ObjectAlreadyExistsException(MyAppException):
+    details = "Объект уже существует"
+
+
+class UserAlreadyExistsException(ObjectAlreadyExistsException):
+    details = "Пользователь уже существует"
+
+# -----------------------------------------------------------------------
+
+
 class ToBigIdException(MyAppException):
     details = "Слишком большой id"
 
@@ -39,8 +49,5 @@ class ToBigIdException(MyAppException):
 class UnexpectedResultFromDbException(MyAppException):
     details = "Неожиданный результат из db"
 
-
-class ObjectAlreadyExistsException(MyAppException):
-    details = "Объект уже существует"
-
-
+class InvalidCredentialsException(MyAppException):
+    details = "Неверные данные авторизации"

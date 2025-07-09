@@ -35,7 +35,15 @@ class FacilityNotFoundHTTPException(MyAppHTTPException):
     details = "Удобство не найдено"
 
 #------------------------------------------------------------------------------
+class UserAlreadyExistsHTTPException(MyAppHTTPException):
+    status_code = 409
+    details = "Пользователь уже существует"
+#------------------------------------------------------------------------------
 
 class ToBigIdHTTPException(MyAppHTTPException):
     status_code = 400
     details = "ИД слишком большой"
+
+class InvalidCredentialsHTTPException(MyAppHTTPException):
+    status_code = 401
+    details = "Неверные логин и/или пароль"

@@ -4,7 +4,7 @@ from fastapi import Query, Depends, Request, HTTPException
 from pydantic import BaseModel
 
 from src.database import new_session
-from src.services.auth import Authservice
+from src.services.auth import AuthService
 from src.utils.db_manager import DBManager
 
 
@@ -25,7 +25,7 @@ def get_access_token(request: Request) -> str:
 
 
 def get_payload_token(access_token: str = Depends(get_access_token)) -> int:
-    payload = Authservice().jwt_decode(access_token)
+    payload = AuthService().jwt_decode(access_token)
     user_id = payload.get("user_id")
     if not user_id:
         raise HTTPException(status_code=404)

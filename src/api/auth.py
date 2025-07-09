@@ -1,54 +1,47 @@
 from fastapi import APIRouter, HTTPException, Response
 
 from src.api.dependecy import DepAccess, DepDB
-from src.exceptions.exeptions import ObjectAlreadyExistsException
+from src.exceptions.exeptions import ObjectAlreadyExistsException, UserAlreadyExistsException, UserNotFoundException, \
+    InvalidCredentialsException
+from src.exceptions.http_exeptions import UserAlreadyExistsHTTPException, UserNotFoundHTTPException, \
+    InvalidCredentialsHTTPException
 from src.schemas.users import UserReg, UserAdd
-from src.services.auth import Authservice
+from src.services.auth import AuthService
 
 router = APIRouter(prefix="/auth", tags=["Авторизация"])
 
 
 @router.post("/register")
 async def register_user(db: DepDB, data: UserReg):
-    hashed_password = Authservice().pwd_context.hash(data.password)
-    new_data_user = UserAdd(email=data.email, hashed_password=hashed_password)
     try:
-        await db.auth.add(new_data_user)
-    except ObjectAlreadyExistsException:
-        raise HTTPException(409, "Пользователь уже существует")
-
-    await db.commit()
+        await AuthService(db).register_user(data)
+    except UserAlreadyExistsException:
+        raise UserAlreadyExistsHTTPException
     return {"status": "ok"}
 
 
 @router.post("/login")
 async def login_user(db: DepDB, data: UserReg, response: Response):
-    user = await db.auth.get_user_with_hashed_password(email=data.email)
-    if not user:
-        raise HTTPException(status_code=401, detail="Пользователь не зарегистрирован")
-    if not Authservice().verify_password(
-        plain_password=data.password, hashed_password=user.hashed_password
-    ):  # new_case проверка пароля
-        raise HTTPException(status_code=401, detail="пароль не верный")
-    access_token = Authservice().create_access_token(user_id=user.id)
-
+    try:
+        access_token = await AuthService(db).login_user(data)
+    except UserNotFoundException:
+        raise UserNotFoundHTTPException
+    except InvalidCredentialsException:
+        raise InvalidCredentialsHTTPException
     response.set_cookie("access_token", access_token)  # new_case добавление куки
-
     return {"access_token": access_token}
 
 
 @router.get("/me")
 async def get_me(db: DepDB, user_id: DepAccess):
-    user = await db.auth.get_one_none(id=user_id)
-    if not user:
-        raise HTTPException(status_code=404)
-
-    return user
+    try:
+        return await AuthService(db).get_me(user_id)
+    except UserNotFoundException:
+        raise UserNotFoundHTTPException
 
 
 @router.post("/logout")
 async def logout(
-    db: DepDB,
     response: Response,
     _: DepAccess,  # new_case переменная мусорка по конвенции python
 ):
