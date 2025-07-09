@@ -1,4 +1,4 @@
-from src.api.dependecy import DepAccess
+from src.api.dependecy import DepAccess, DepPagination
 from src.exceptions.exeptions import UnexpectedResultFromDbException, ObjectNotFoundException
 from src.schemas.booking import BookingAdd, Booking, BookingToDB
 from src.services.base import BaseService
@@ -15,4 +15,16 @@ class BookingService(BaseService):
 
         return booking
 
+    async def get_bookings(self, pag: DepPagination)-> list[Booking]:
+        offset = pag.per_page * pag.page - pag.per_page
+        limit = pag.per_page
+        bookings = await self.db.bookings.get_all(offset=offset, limit=limit)
+        return bookings
 
+    async def get_my_booking(self, user_id: int)-> list[Booking]:
+        bookings = await self.db.bookings.get_all(user_id=user_id)
+        return bookings
+
+    async def get_my_bookings(self, user_id, pag):
+        bookings = await self.db.bookings.get_my_bookings(user_id, pag)
+        return bookings

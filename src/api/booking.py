@@ -9,6 +9,7 @@ from src.exceptions.utils import check_data_from_after_date_to_http_exc
 from src.exceptions.http_exeptions import RoomNotFoundHTTPException, ToBigIdHTTPException, NoAvailableRoomHTTPException
 from src.schemas.booking import BookingAdd, BookingToDB
 from src.services.booking import BookingService
+from src.services.room import RoomService
 
 router = APIRouter(prefix="/bookings", tags=["Бронирование"])
 
@@ -25,21 +26,20 @@ async def add_booking(user_id: DepAccess, db: DepDB, data_booking: BookingAdd):
         raise NoAvailableRoomHTTPException
     return {"status": "ok", "data": booking}
 
-
 @router.get("")
 async def get_bookings(
     db: DepDB,
     pag: DepPagination,
 ):
-    offset = pag.per_page * pag.page - pag.per_page
-    limit = pag.per_page
-    bookings = await db.bookings.get_all(offset=offset, limit=limit)
+    bookings = await BookingService(db).get_bookings(pag)
     return {"status": "ok", "data": bookings}
+
+
 
 
 @router.get("/me")
 async def get_my_booking(user_id: DepAccess, db: DepDB):
-    bookings = await db.bookings.get_all(user_id=user_id)
+    bookings = await BookingService(db).get_my_booking(user_id)
     return {"status": "ok", "data": bookings}
 
 
@@ -52,12 +52,8 @@ async def get_available_rooms(
     hotel_id: int = Query(None),
 ):
     check_data_from_after_date_to_http_exc(date_from=date_from, date_to=date_to)
-
-    offset = pag.per_page * pag.page - pag.per_page
-    limit = pag.per_page
-    rooms_available = await db.bookings.get_available_rooms(
-        hotel_id=hotel_id, offset=offset, limit=limit, date_from=date_from, date_to=date_to
-    )
+    rooms_available = await RoomService(db).get_available_rooms(
+        hotel_id=hotel_id, pag=pag, date_from=date_from, date_to=date_to)
     return {"status": "ok", "data": rooms_available}
 
 
@@ -67,7 +63,7 @@ async def get_my_bookings(
     pag: DepPagination,
     user_id: DepAccess,
 ):
-    bookings = await db.bookings.get_my_bookings(user_id, pag)
+    bookings = await BookingService(db).get_my_bookings(user_id, pag)
     return {"status": "ok", "data": bookings}
 
 
@@ -80,9 +76,7 @@ async def get_available_rooms_shymeyko(
     hotel_id: int = Query(None),
 ):
     check_data_from_after_date_to_http_exc(date_from=date_from, date_to=date_to)
-    offset = pag.per_page * pag.page - pag.per_page
-    limit = pag.per_page
-    rooms_available = await db.rooms.get_available_rooms_shymeyko(
-        hotel_id=hotel_id, offset=offset, limit=limit, date_from=date_from, date_to=date_to
+    rooms_available = await RoomService(db).get_available_rooms_shymeyko(
+        hotel_id=hotel_id, pag=pag, date_from=date_from, date_to=date_to
     )
     return {"status": "ok", "data": rooms_available}
