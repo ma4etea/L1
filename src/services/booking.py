@@ -1,5 +1,4 @@
 from src.api.dependecy import DepAccess, DepPagination
-from src.exceptions.exeptions import UnexpectedResultFromDbException, ObjectNotFoundException
 from src.schemas.booking import BookingAdd, Booking, BookingToDB
 from src.services.base import BaseService
 from src.services.room import RoomService

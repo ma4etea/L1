@@ -1,5 +1,4 @@
 import json
-import logging
 
 from src.celery_tasks.tasks import task1
 from src.connectors.redis_conn import redis

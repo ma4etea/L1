@@ -1,13 +1,14 @@
+import logging
 from datetime import date
 from sqlalchemy import select, func
-from sqlalchemy.exc import MultipleResultsFound, DBAPIError
+from sqlalchemy.exc import DBAPIError
 
-from src.exceptions.exeptions import ObjectNotFoundException, UnexpectedResultFromDbException, NoAvailableRoom
+from src.exceptions.exeptions import NoAvailableRoom
 from src.models.bookings import BookingsOrm
 from src.models.rooms import RoomsOrm
 from src.repositories.base import BaseRepository
 from src.repositories.mappers.mappers import BookingDataMapper
-from src.repositories.utils import check_rooms_available
+from src.repositories.utils import check_rooms_available, sql_debag
 from src.schemas.booking import RoomsAvailable, BookingToDB
 
 
@@ -74,7 +75,7 @@ class BookingsRepository(BaseRepository):
             .order_by("id")
         )
 
-        logging.debug(f"Запрос в базу: {sql_debag(stmt)}")
+        logging.debug(f"Запрос в базу: {sql_debag(query)}")
 
         result = await self.session.execute(query)
         rows = result.all()

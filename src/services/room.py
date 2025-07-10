@@ -1,7 +1,7 @@
 from datetime import date
 
 from src.api.dependecy import DepPagination
-from src.exceptions.exeptions import ObjectNotFoundException, RoomNotFoundException, ToBigIdException
+from src.exceptions.exeptions import ObjectNotFoundException, RoomNotFoundException
 from src.schemas.room import Room, RoomWith
 from src.services.base import BaseService
 

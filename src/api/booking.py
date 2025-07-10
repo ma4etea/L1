@@ -1,13 +1,12 @@
 from datetime import date
 
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, Query
 
 from src.api.dependecy import DepAccess, DepDB, DepPagination
-from src.exceptions.exeptions import ObjectNotFoundException, ToBigIdException, UnexpectedResultFromDbException, \
-    NoAvailableRoom
+from src.exceptions.exeptions import ObjectNotFoundException, ToBigIdException, NoAvailableRoom
 from src.exceptions.utils import check_data_from_after_date_to_http_exc
 from src.exceptions.http_exeptions import RoomNotFoundHTTPException, ToBigIdHTTPException, NoAvailableRoomHTTPException
-from src.schemas.booking import BookingAdd, BookingToDB
+from src.schemas.booking import BookingAdd
 from src.services.booking import BookingService
 from src.services.room import RoomService
 

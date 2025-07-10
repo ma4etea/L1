@@ -1,3 +1,4 @@
+import logging
 from datetime import date
 
 from sqlalchemy import func, select
@@ -116,7 +117,7 @@ def check_rooms_available(
         .outerjoin(rbc, r.id == rbc.c.room_id)
         .filter(r.id == room_id)
     )
-    logging.debug(f"Запрос в базу: {sql_debag(stmt)}")
+    logging.debug(f"Запрос в базу: {sql_debag(query)}")
 
     return query
 

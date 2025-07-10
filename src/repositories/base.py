@@ -9,6 +9,7 @@ from src.database import engine, BaseModel
 from sqlalchemy import select, Insert, delete, update, Executable
 
 from src.exceptions.exeptions import ObjectNotFoundException, ToBigIdException, ObjectAlreadyExistsException
+from src.exceptions.utils import is_raise
 from src.repositories.mappers.base import DataMapper
 from src.repositories.utils import sql_debag
 
@@ -56,22 +57,7 @@ class BaseRepository:
             model = result.scalars().one_or_none()
             return self.mapper.to_domain(model)
         except IntegrityError as exc:
-            # # new_case: Так можно безопасно доставать вложеные(обернутые ошибки)
-            cause = getattr(exc.orig, "__cause__",
-                            None)  # new_case: безопасная проверка что атрибут есть ex.orig.__cause__
-            if isinstance(exc.orig, UniqueViolationError) or isinstance(cause,
-                                                                        UniqueViolationError):  # new_case: вместо cause можно ex.orig.__cause__ но это не безопасный доступ
-                raise ObjectAlreadyExistsException
-
-            logging.error(f"Вывод exc: {type(exc).__name__}: {exc}")
-            logging.error("------------------------------------------------------")
-            logging.error(f"Вывод exc.orig: {type(exc).__name__}: {exc.orig}")
-            logging.error("------------------------------------------------------")
-            logging.error(f"Вывод exc.__context__: {type(exc).__name__}: {exc.__context__}")
-            logging.error("------------------------------------------------------")
-            logging.error(f"Вывод exc.__cause__: {type(exc).__name__}: {exc.__cause__}")
-            logging.error("------------------------------------------------------")
-            logging.error(f"Вывод exc.orig.__cause__: {type(exc).__name__}: {exc.orig.__cause__}")
+            is_raise(exc, UniqueViolationError, ObjectAlreadyExistsException)
             raise exc
 
     async def add_bulk(self, data_list: Sequence[BaseSchema]):

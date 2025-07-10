@@ -1,11 +1,7 @@
-import json
-
 from fastapi import APIRouter
 
 from fastapi_cache.decorator import cache
 from src.api.dependecy import DepAccess, DepDB
-from src.celery_tasks.tasks import task1
-from src.connectors.redis_conn import redis
 from src.schemas.facilities import AddFacility
 from src.services.facility import FacilityService
 
