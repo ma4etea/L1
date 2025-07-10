@@ -1,3 +1,4 @@
+import logging
 from datetime import date
 
 from pydantic import BaseModel as BaseSchema
@@ -11,7 +12,8 @@ from src.models.facilities import RoomsFacilitiesORM, FacilitiesOrm
 from src.models.rooms import RoomsOrm
 from src.repositories.base import BaseRepository
 from src.repositories.mappers.mappers import RoomDataMapper
-from src.repositories.utils import get_available_rooms_ids
+from src.repositories.utils import get_available_rooms_ids, sql_debag
+from src.schemas.room import RoomWith
 
 
 class RoomsRepository(BaseRepository):
@@ -150,11 +152,13 @@ class RoomsRepository(BaseRepository):
         query = (
             select(self.model).filter_by(**filter_by).options(selectinload(self.model.facilities))
         )
-        print(query.compile(bind=engine, compile_kwargs={"literal_binds": True}))
-
-        res = await self.session.execute(query)
-        models = res.scalars().all()
-        return [self.mapper.to_domain(model) for model in models]
+        logging.debug(sql_debag(query))
+        try:
+            res = await self.session.execute(query)
+            models = res.scalars().all()
+        except DBAPIError:
+            raise ToBigIdException
+        return [RoomWith.model_validate(model, from_attributes=True) for model in models]
 
     async def get_room_with(self, **filter_by):
         query = select(self.model).options(joinedload(self.model.facilities)).filter_by(**filter_by)
@@ -165,5 +169,4 @@ class RoomsRepository(BaseRepository):
             raise ObjectNotFoundException
         except DBAPIError:
             raise ToBigIdException
-
-        return self.mapper.to_domain(model)
+        return RoomWith.model_validate(model, from_attributes=True)

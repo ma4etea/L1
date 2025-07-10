@@ -2,7 +2,7 @@ from datetime import date
 
 from src.api.dependecy import DepPagination
 from src.exceptions.exeptions import ObjectNotFoundException, RoomNotFoundException, ToBigIdException
-from src.schemas.room import Room
+from src.schemas.room import Room, RoomWith
 from src.services.base import BaseService
 
 
@@ -34,3 +34,14 @@ class RoomService(BaseService):
             hotel_id=hotel_id, offset=offset, limit=limit, date_from=date_from, date_to=date_to
         )
         return rooms_available
+
+    async def get_rooms(self, hotel_id: int) -> list[RoomWith]:
+        rooms_with = await self.db.rooms.get_rooms_with(hotel_id=hotel_id)
+        return rooms_with
+
+    async def get_room(self, hotel_id: int, room_id: int) -> RoomWith:
+        try:
+            room_with = await self.db.rooms.get_room_with(hotel_id=hotel_id, id=room_id)
+        except ObjectNotFoundException as exc:
+            raise RoomNotFoundException from exc
+        return room_with

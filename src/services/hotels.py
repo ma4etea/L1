@@ -3,7 +3,7 @@ from datetime import date
 
 from src.api.dependecy import DepPagination
 from src.exceptions.exeptions import ObjectNotFoundException, HotelNotFoundException
-from src.schemas.hotels import HotelAdd
+from src.schemas.hotels import HotelAdd, HotelPatch, Hotel
 from src.services.base import BaseService
 
 
@@ -46,3 +46,12 @@ class HotelService(BaseService):
         except ObjectNotFoundException as exc:
             logging.warning(f"Отель не найден: {type(exc).__name__}")
             raise HotelNotFoundException from exc
+
+
+    async def edit_hotel(self, hotel_id: int, hotel_data: HotelPatch | HotelAdd, exclude_unset=False) -> Hotel:
+        try:
+            hotel = await self.db.hotels.edit(hotel_data, exclude_unset=exclude_unset, id=hotel_id)
+        except ObjectNotFoundException as exc:
+            raise HotelNotFoundException from exc
+        await self.db.commit()
+        return hotel

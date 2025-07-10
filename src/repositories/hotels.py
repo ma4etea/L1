@@ -41,6 +41,6 @@ class HotelsRepository(BaseRepository):
 
         hotels_ids = hotels_ids.filter(self.model.id == rooms.c.hotel_id)
 
-        # print(query.compile(compile_kwargs={"literal_binds": True}))
+        # logging.debug(f"Запрос в базу: {sql_debag(stmt)}")
 
         return await self.get_all(None, None, HotelsOrm.id.in_(hotels_ids))

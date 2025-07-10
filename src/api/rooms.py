@@ -2,19 +2,24 @@ from datetime import datetime
 
 from fastapi import APIRouter, Path, HTTPException
 from src.api.dependecy import DepAccess, DepDB
-from src.exceptions.exeptions import ObjectNotFoundException, ToBigIdException
+from src.exceptions.exeptions import ObjectNotFoundException, ToBigIdException, RoomNotFoundException
 from src.exceptions.http_exeptions import HotelNotFoundHTTPException, RoomNotFoundHTTPException, ToBigIdHTTPException
 from src.schemas.facilities import AddRoomsFacilities
 from src.schemas.room import AddRoom, AddRoomToDb, EditRoom
+from src.services.room import RoomService
 
 router = APIRouter(prefix="/hotels", tags=["Номера"])
 
 
 @router.get("/{hotel_id}/rooms")
 async def get_rooms(_: DepAccess, db: DepDB, hotel_id: int = Path()):
+    try:
+        rooms_with = await RoomService(db).get_rooms(hotel_id=hotel_id)
+    except ToBigIdException:
+        raise ToBigIdHTTPException
     return {
         "status": "OK",
-        "data": await db.rooms.get_rooms_with(hotel_id=hotel_id),
+        "data": rooms_with,
     }
 
 
@@ -26,8 +31,8 @@ async def get_room(
     room_id: int = Path(),
 ):
     try:
-        room = await db.rooms.get_room_with(hotel_id=hotel_id, id=room_id)
-    except ObjectNotFoundException:
+        room = await RoomService(db).get_room(hotel_id, room_id)
+    except RoomNotFoundException:
         raise RoomNotFoundHTTPException
     except ToBigIdException as exc:
         raise ToBigIdHTTPException

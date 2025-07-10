@@ -16,5 +16,5 @@ class DataMapper:
         return cls.schema.model_validate(model, from_attributes=True)
 
     @classmethod
-    def to_persist(cls, schema: BaseSchema):
-        return cls.model(**schema.model_dump())
+    def to_persist(cls, schema: BaseSchema, exclude_unset=False):
+        return cls.model(**schema.model_dump(exclude_unset=exclude_unset))

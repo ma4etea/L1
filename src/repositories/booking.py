@@ -74,7 +74,7 @@ class BookingsRepository(BaseRepository):
             .order_by("id")
         )
 
-        print(query.compile(compile_kwargs={"literal_binds": True}))
+        logging.debug(f"Запрос в базу: {sql_debag(stmt)}")
 
         result = await self.session.execute(query)
         rows = result.all()

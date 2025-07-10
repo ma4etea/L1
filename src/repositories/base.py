@@ -6,11 +6,11 @@ from sqlalchemy.exc import IntegrityError, NoResultFound, DBAPIError
 from sqlalchemy.ext.asyncio import AsyncSession
 from pydantic import BaseModel as BaseSchema
 from src.database import engine, BaseModel
-from fastapi import HTTPException
-from sqlalchemy import select, Insert, delete, update
+from sqlalchemy import select, Insert, delete, update, Executable
 
 from src.exceptions.exeptions import ObjectNotFoundException, ToBigIdException, ObjectAlreadyExistsException
 from src.repositories.mappers.base import DataMapper
+from src.repositories.utils import sql_debag
 
 
 class BaseRepository:
@@ -27,7 +27,7 @@ class BaseRepository:
         if limit:
             query = query.limit(limit=limit)
 
-        print(query.compile(compile_kwargs={"literal_binds": True}))
+        logging.debug(f"Запрос в базу: {sql_debag(query)}")
         result = await self.session.execute(query)
         models = result.scalars().all()
 
@@ -43,18 +43,12 @@ class BaseRepository:
 
     async def get_one(self, *filter_, **filter_by):
         query = select(self.model).filter(*filter_).filter_by(**filter_by)
-        try:
-            result = await self.session.execute(query)
-            model = result.scalar_one()
-        except NoResultFound:
-            raise ObjectNotFoundException
-        except DBAPIError:
-            raise ToBigIdException
+        model = await self.safe_execute_one(query)
         return self.mapper.to_domain(model)
 
     async def add(
-        self,
-        data: BaseSchema,
+            self,
+            data: BaseSchema,
     ):
         stmt = Insert(self.model).values(**data.model_dump()).returning(self.model)
         try:
@@ -63,8 +57,10 @@ class BaseRepository:
             return self.mapper.to_domain(model)
         except IntegrityError as exc:
             # # new_case: Так можно безопасно доставать вложеные(обернутые ошибки)
-            cause = getattr(exc.orig, "__cause__", None)  # new_case: безопасная проверка что атрибут есть ex.orig.__cause__
-            if isinstance(exc.orig, UniqueViolationError) or isinstance(cause, UniqueViolationError):  # new_case: вместо cause можно ex.orig.__cause__ но это не безопасный доступ
+            cause = getattr(exc.orig, "__cause__",
+                            None)  # new_case: безопасная проверка что атрибут есть ex.orig.__cause__
+            if isinstance(exc.orig, UniqueViolationError) or isinstance(cause,
+                                                                        UniqueViolationError):  # new_case: вместо cause можно ex.orig.__cause__ но это не безопасный доступ
                 raise ObjectAlreadyExistsException
 
             logging.error(f"Вывод exc: {type(exc).__name__}: {exc}")
@@ -78,14 +74,10 @@ class BaseRepository:
             logging.error(f"Вывод exc.orig.__cause__: {type(exc).__name__}: {exc.orig.__cause__}")
             raise exc
 
-
-
-
-
-
     async def add_bulk(self, data_list: Sequence[BaseSchema]):
         stmt = Insert(self.model).values([data.model_dump() for data in data_list])
-        print(stmt.compile(bind=engine, compile_kwargs={"literal_binds": True}))
+        logging.debug(f"Запрос в базу: {sql_debag(stmt)}")
+
         try:
             await self.session.execute(stmt)
         except IntegrityError:
@@ -94,25 +86,13 @@ class BaseRepository:
             raise ToBigIdException
 
     async def edit(self, data: BaseSchema, *filter_, exclude_unset=False, **filter_by):
-        query = select(self.model).filter(*filter_).filter_by(**filter_by)
-        result = await self.session.execute(query)
-        result_orm = result.scalars().all()
-        if len(result_orm) > 1:
-            raise HTTPException(status_code=422)
-        if len(result_orm) < 1:
-            raise HTTPException(status_code=404)
-
         stmt = (
             update(self.model)
             .filter_by(**filter_by)
             .values(**data.model_dump(exclude_unset=exclude_unset))
         ).returning(self.model)
-        print("----------------------....................................")
-        print(stmt.compile(bind=engine, compile_kwargs={"literal_binds": True}))
-        result = await self.session.execute(stmt)
-        model = result.scalars().one_or_none()
-        if not model:
-            raise HTTPException(404)
+        logging.debug(f"Запрос в базу: {sql_debag(stmt)}")
+        model = await self.safe_execute_one(stmt)
         return self.mapper.to_domain(model)
 
     async def delete(self, **filter_by):
@@ -124,3 +104,13 @@ class BaseRepository:
     async def delete_bulk(self, *filter_, **filter_by):
         stmt = delete(self.model).filter(*filter_).filter_by(**filter_by)
         await self.session.execute(stmt)
+
+    async def safe_execute_one(self, stmt: Executable) -> BaseModel:
+        try:
+            result = await self.session.execute(stmt)
+            model = result.scalar_one()
+        except NoResultFound:
+            raise ObjectNotFoundException
+        except DBAPIError:
+            raise ToBigIdException
+        return model

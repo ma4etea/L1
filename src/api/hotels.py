@@ -70,9 +70,13 @@ async def delete_hotel(db: DepDB, hotel_id: int = Path()):
 
 @router.patch("/{hotel_id}")
 async def edit_hotel(db: DepDB, hotel_id: int, hotel_data: HotelPatch):
-    await db.hotels.edit(hotel_data, exclude_unset=True, id=hotel_id)
-    await db.commit()
-    return {"status": "OK"}
+    try:
+        hotel = await HotelService(db).edit_hotel(hotel_id, hotel_data, exclude_unset=True)
+    except HotelNotFoundException:
+        raise HotelNotFoundHTTPException
+    except ToBigIdException:
+        raise ToBigIdHTTPException
+    return {"status": "OK", "data": hotel}
 
 
 @router.put(
@@ -85,9 +89,13 @@ async def upd_hotel(
     hotel_id: int,
     hotel_data: HotelAdd,
 ):
-    await db.hotels.edit(hotel_data, id=hotel_id)
-    await db.commit()
-    return {"status": "OK"}
+    try:
+        hotel = await HotelService(db).edit_hotel(hotel_id, hotel_data)
+    except HotelNotFoundException:
+        raise HotelNotFoundHTTPException
+    except ToBigIdException:
+        raise ToBigIdHTTPException
+    return {"status": "OK", "data": hotel}
 
 
 @router.get("/{hotel_id}")

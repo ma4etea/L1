@@ -2,6 +2,7 @@ from datetime import date
 
 from sqlalchemy import func, select
 
+from src.database import engine
 from src.models.bookings import BookingsOrm
 from src.models.rooms import RoomsOrm
 
@@ -115,6 +116,9 @@ def check_rooms_available(
         .outerjoin(rbc, r.id == rbc.c.room_id)
         .filter(r.id == room_id)
     )
-    print(query.compile(compile_kwargs={"literal_binds": True}))
+    logging.debug(f"Запрос в базу: {sql_debag(stmt)}")
 
     return query
+
+def sql_debag(stmt) -> str:
+    return stmt.compile(bind=engine, compile_kwargs={"literal_binds": True})
