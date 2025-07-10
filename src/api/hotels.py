@@ -4,9 +4,9 @@ from fastapi import Query, Body, Path, APIRouter
 
 from src.api.dependecy import DepPagination, DepDB
 from src.exceptions.exeptions import ToBigIdException, \
-    HotelNotFoundException
-from src.exceptions.utils import check_data_from_after_date_to_http_exc
-from src.exceptions.http_exeptions import HotelNotFoundHTTPException, ToBigIdHTTPException
+    HotelNotFoundException, InvalidDateAfterDate
+from src.exceptions.http_exeptions import HotelNotFoundHTTPException, ToBigIdHTTPException, \
+    InvalidDateAfterDateHTTPException
 from src.schemas.hotels import HotelPatch, HotelAdd
 from src.services.hotels import HotelService
 
@@ -32,15 +32,18 @@ async def get_available_hotels(
     title: str | None = Query(None, description="Название отеля"),
     location: str | None = Query(None, description="Локация"),
 ):
-    check_data_from_after_date_to_http_exc(date_from=date_from, date_to=date_to)
 
-    hotels = await HotelService(db).get_available_hotels(
-    date_from,
-    date_to,
-    pag,
-    title,
-    location,
-    )
+    try:
+        hotels = await HotelService(db).get_available_hotels(
+        date_from,
+        date_to,
+        pag,
+        title,
+        location,
+        )
+    except InvalidDateAfterDate:
+        raise InvalidDateAfterDateHTTPException
+
     return hotels
 
 

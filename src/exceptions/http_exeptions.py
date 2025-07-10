@@ -51,3 +51,7 @@ class InvalidCredentialsHTTPException(MyAppHTTPException):
 class NoAvailableRoomHTTPException(MyAppHTTPException):
     status_code = 409
     details = "Нет доступного номера для бронирования"
+
+class InvalidDateAfterDateHTTPException(MyAppHTTPException):
+    status_code = 422
+    details = "Дата заезда должна быть раньше выезда"

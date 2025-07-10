@@ -2,6 +2,7 @@ from datetime import date
 
 from src.api.dependecy import DepPagination
 from src.exceptions.exeptions import ObjectNotFoundException, RoomNotFoundException
+from src.exceptions.utils import check_data_from_after_date_to_http_exc
 from src.schemas.room import Room, RoomWith
 from src.services.base import BaseService
 
@@ -14,6 +15,7 @@ class RoomService(BaseService):
             raise RoomNotFoundException from exc
 
     async def get_available_rooms(self, hotel_id: int, pag: DepPagination, date_from: date, date_to: date):
+        check_data_from_after_date_to_http_exc(date_from=date_from, date_to=date_to)
         offset = pag.per_page * pag.page - pag.per_page
         limit = pag.per_page
         rooms_available = await self.db.bookings.get_available_rooms(
@@ -28,6 +30,7 @@ class RoomService(BaseService):
             date_to: date,
             hotel_id: int
     ):
+        check_data_from_after_date_to_http_exc(date_from=date_from, date_to=date_to)
         offset = pag.per_page * pag.page - pag.per_page
         limit = pag.per_page
         rooms_available = await self.db.rooms.get_available_rooms_shymeyko(

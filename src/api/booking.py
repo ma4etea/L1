@@ -3,9 +3,9 @@ from datetime import date
 from fastapi import APIRouter, Query
 
 from src.api.dependecy import DepAccess, DepDB, DepPagination
-from src.exceptions.exeptions import ObjectNotFoundException, ToBigIdException, NoAvailableRoom
-from src.exceptions.utils import check_data_from_after_date_to_http_exc
-from src.exceptions.http_exeptions import RoomNotFoundHTTPException, ToBigIdHTTPException, NoAvailableRoomHTTPException
+from src.exceptions.exeptions import ObjectNotFoundException, ToBigIdException, NoAvailableRoom, InvalidDateAfterDate
+from src.exceptions.http_exeptions import RoomNotFoundHTTPException, ToBigIdHTTPException, NoAvailableRoomHTTPException, \
+    InvalidDateAfterDateHTTPException
 from src.schemas.booking import BookingAdd
 from src.services.booking import BookingService
 from src.services.room import RoomService
@@ -50,9 +50,11 @@ async def get_available_rooms(
     date_to: date,
     hotel_id: int = Query(None),
 ):
-    check_data_from_after_date_to_http_exc(date_from=date_from, date_to=date_to)
-    rooms_available = await RoomService(db).get_available_rooms(
-        hotel_id=hotel_id, pag=pag, date_from=date_from, date_to=date_to)
+    try:
+        rooms_available = await RoomService(db).get_available_rooms(
+            hotel_id=hotel_id, pag=pag, date_from=date_from, date_to=date_to)
+    except InvalidDateAfterDate:
+        raise InvalidDateAfterDateHTTPException
     return {"status": "ok", "data": rooms_available}
 
 
@@ -74,8 +76,10 @@ async def get_available_rooms_shymeyko(
     date_to: date,
     hotel_id: int = Query(None),
 ):
-    check_data_from_after_date_to_http_exc(date_from=date_from, date_to=date_to)
-    rooms_available = await RoomService(db).get_available_rooms_shymeyko(
-        hotel_id=hotel_id, pag=pag, date_from=date_from, date_to=date_to
-    )
+    try:
+        rooms_available = await RoomService(db).get_available_rooms_shymeyko(
+            hotel_id=hotel_id, pag=pag, date_from=date_from, date_to=date_to
+        )
+    except InvalidDateAfterDate:
+        raise InvalidDateAfterDateHTTPException
     return {"status": "ok", "data": rooms_available}

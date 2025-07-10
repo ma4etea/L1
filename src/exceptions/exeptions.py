@@ -54,3 +54,6 @@ class InvalidCredentialsException(MyAppException):
 
 class NoAvailableRoom(MyAppException):
     details = "Нет доступного номера"
+
+class InvalidDateAfterDate(MyAppException):
+    details = "Дата заезда должна быть раньше выезда"

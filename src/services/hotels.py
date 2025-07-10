@@ -3,6 +3,7 @@ from datetime import date
 
 from src.api.dependecy import DepPagination
 from src.exceptions.exeptions import ObjectNotFoundException, HotelNotFoundException
+from src.exceptions.utils import check_data_from_after_date_to_http_exc
 from src.schemas.hotels import HotelAdd, HotelPatch, Hotel
 from src.services.base import BaseService
 
@@ -17,6 +18,7 @@ class HotelService(BaseService):
             location: str | None = None,
 
     ):
+        check_data_from_after_date_to_http_exc(date_from=date_from, date_to=date_to)
         per_page = pag.per_page or 3
         offset = per_page * pag.page - per_page
         limit = per_page
