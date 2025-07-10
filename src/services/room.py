@@ -5,6 +5,7 @@ from src.exceptions.exeptions import ObjectNotFoundException, RoomNotFoundExcept
 from src.exceptions.utils import check_data_from_after_date_to_http_exc
 from src.schemas.room import Room, RoomWith
 from src.services.base import BaseService
+from src.services.hotels import HotelService
 
 
 class RoomService(BaseService):
@@ -48,3 +49,9 @@ class RoomService(BaseService):
         except ObjectNotFoundException as exc:
             raise RoomNotFoundException from exc
         return room_with
+
+    async def remove_room(self, hotel_id:int, room_id:int) -> None:
+        await HotelService(self.db).check_hotel(hotel_id=hotel_id)
+        await self.check_room(room_id=room_id)
+        await self.db.rooms.delete(hotel_id=hotel_id, id=room_id)
+        await self.db.commit()

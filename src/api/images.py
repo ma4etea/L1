@@ -6,7 +6,7 @@ from src.celery_tasks.tasks import save_resized_images
 
 router = APIRouter(prefix="/images", tags=["Загрузка изображений"])
 
-
+# todo перенести в сервис
 @router.post("")
 def upload_image(file: UploadFile, background_task: BackgroundTasks):
     path = f"src/static/images/{file.filename}"

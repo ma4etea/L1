@@ -2,7 +2,8 @@ from datetime import datetime
 
 from fastapi import APIRouter, Path
 from src.api.dependecy import DepAccess, DepDB
-from src.exceptions.exeptions import ObjectNotFoundException, ToBigIdException, RoomNotFoundException
+from src.exceptions.exeptions import ObjectNotFoundException, ToBigIdException, RoomNotFoundException, \
+    HotelNotFoundException
 from src.exceptions.http_exeptions import HotelNotFoundHTTPException, RoomNotFoundHTTPException, ToBigIdHTTPException, \
     FacilityNotFoundHTTPException
 from src.schemas.facilities import AddRoomsFacilities
@@ -74,13 +75,13 @@ async def remove_room(
     room_id: int = Path(),
 ):
     try:
-        await db.rooms.delete(hotel_id=hotel_id, id=room_id)
-    except ObjectNotFoundException:
+        await RoomService(db).remove_room(hotel_id, room_id)
+    except HotelNotFoundException:
+        raise HotelNotFoundHTTPException
+    except RoomNotFoundException:
         raise RoomNotFoundHTTPException
     except ToBigIdException:
         raise ToBigIdHTTPException
-    await db.commit()
-
     return {"status": "OK"}
 
 

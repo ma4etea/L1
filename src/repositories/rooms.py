@@ -11,9 +11,8 @@ from src.exceptions.exeptions import ObjectNotFoundException, ToBigIdException
 from src.models.facilities import RoomsFacilitiesORM, FacilitiesOrm
 from src.models.rooms import RoomsOrm
 from src.repositories.base import BaseRepository
-from src.repositories.mappers.mappers import RoomDataMapper
+from src.repositories.mappers.mappers import RoomDataMapper, RoomWithDataMapper
 from src.repositories.utils import get_available_rooms_ids, sql_debag
-from src.schemas.room import RoomWith
 
 
 class RoomsRepository(BaseRepository):
@@ -158,7 +157,7 @@ class RoomsRepository(BaseRepository):
             models = res.scalars().all()
         except DBAPIError:
             raise ToBigIdException
-        return [RoomWith.model_validate(model, from_attributes=True) for model in models]
+        return [RoomWithDataMapper.to_domain(model) for model in models]
 
     async def get_room_with(self, **filter_by):
         query = select(self.model).options(joinedload(self.model.facilities)).filter_by(**filter_by)
@@ -169,4 +168,4 @@ class RoomsRepository(BaseRepository):
             raise ObjectNotFoundException
         except DBAPIError:
             raise ToBigIdException
-        return RoomWith.model_validate(model, from_attributes=True)
+        return RoomWithDataMapper.to_domain(model)
