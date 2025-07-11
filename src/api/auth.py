@@ -3,7 +3,7 @@ from fastapi import APIRouter, Response
 from src.api.dependecy import DepAccess, DepDB
 from src.exceptions.exeptions import UserAlreadyExistsException, UserNotFoundException, \
     InvalidCredentialsException
-from src.exceptions.http_exeptions import UserAlreadyExistsHTTPException, UserNotFoundHTTPException, \
+from src.api.http_exceptions.http_exeptions import UserAlreadyExistsHTTPException, UserNotFoundHTTPException, \
     InvalidCredentialsHTTPException
 from src.schemas.users import UserReg
 from src.services.auth import AuthService

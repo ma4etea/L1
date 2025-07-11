@@ -5,7 +5,7 @@ from fastapi import Query, Body, Path, APIRouter
 from src.api.dependecy import DepPagination, DepDB
 from src.exceptions.exeptions import ToBigIdException, \
     HotelNotFoundException, InvalidDateAfterDate
-from src.exceptions.http_exeptions import HotelNotFoundHTTPException, ToBigIdHTTPException, \
+from src.api.http_exceptions.http_exeptions import HotelNotFoundHTTPException, ToBigIdHTTPException, \
     InvalidDateAfterDateHTTPException
 from src.schemas.hotels import HotelPatch, HotelAdd
 from src.services.hotels import HotelService

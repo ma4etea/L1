@@ -4,7 +4,7 @@ from fastapi import APIRouter, Path
 from src.api.dependecy import DepAccess, DepDB
 from src.exceptions.exeptions import ObjectNotFoundException, ToBigIdException, RoomNotFoundException, \
     HotelNotFoundException
-from src.exceptions.http_exeptions import HotelNotFoundHTTPException, RoomNotFoundHTTPException, ToBigIdHTTPException, \
+from src.api.http_exceptions.http_exeptions import HotelNotFoundHTTPException, RoomNotFoundHTTPException, ToBigIdHTTPException, \
     FacilityNotFoundHTTPException
 from src.schemas.facilities import AddRoomsFacilities
 from src.schemas.room import AddRoom, AddRoomToDb, EditRoom

@@ -4,7 +4,7 @@ from fastapi import APIRouter, Query
 
 from src.api.dependecy import DepAccess, DepDB, DepPagination
 from src.exceptions.exeptions import ObjectNotFoundException, ToBigIdException, NoAvailableRoom, InvalidDateAfterDate
-from src.exceptions.http_exeptions import RoomNotFoundHTTPException, ToBigIdHTTPException, NoAvailableRoomHTTPException, \
+from src.api.http_exceptions.http_exeptions import RoomNotFoundHTTPException, ToBigIdHTTPException, NoAvailableRoomHTTPException, \
     InvalidDateAfterDateHTTPException
 from src.schemas.booking import BookingAdd
 from src.services.booking import BookingService

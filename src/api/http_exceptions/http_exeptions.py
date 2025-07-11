@@ -55,3 +55,15 @@ class NoAvailableRoomHTTPException(MyAppHTTPException):
 class InvalidDateAfterDateHTTPException(MyAppHTTPException):
     status_code = 422
     details = "Дата заезда должна быть раньше выезда"
+
+class InvalidTokenHTTPException(MyAppHTTPException):
+    status_code = 401
+    details = "Токен отсутствует"
+
+class IncorrectTokenHTTPException(MyAppHTTPException):
+    status_code = 401
+    details = "Неверный токен"
+
+class ExpiredTokenHTTPException(MyAppHTTPException):
+    status_code = 401
+    details = "Токен истек"

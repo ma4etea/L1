@@ -39,10 +39,10 @@ class AuthService(BaseService):
                 settings.JWT_SECRET_KEY,
                 algorithms=[settings.JWT_ALGORITHM],
             )
-        except jwt.exceptions.ExpiredSignatureError as e:
-            raise HTTPException(401, f"{e}")
-        except jwt.exceptions.InvalidSignatureError as e:
-            raise HTTPException(401, f"{e}")
+        except jwt.exceptions.ExpiredSignatureError as exc:
+            raise exc
+        except jwt.exceptions.InvalidSignatureError as exc:
+            raise exc
         return payload
 
     async def register_user(self, data: UserReg):

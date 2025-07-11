@@ -21,8 +21,8 @@ class FacilityService(BaseService):
             await redis.set("facilities", facilities_json, 10)
             return facilities
         else:
-            # todo это хороший способ преобразовать json из redis в список пайдентик схем?
-            facilities = [Facility.model_validate(dict_) for dict_ in json.loads(facilities_from_cache)]
+            facilities = json.loads(facilities_from_cache)
+            # facilities = [Facility.model_validate(dict_) for dict_ in json.loads(facilities_from_cache)]
         return facilities
 
     async def get_facilities_cached(self) -> list[Facility]:

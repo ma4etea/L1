@@ -1,8 +1,11 @@
 from typing import Annotated
 
 from fastapi import Query, Depends, Request, HTTPException
+from jwt import ExpiredSignatureError, InvalidSignatureError
 from pydantic import BaseModel
 
+from src.api.http_exceptions.http_exeptions import InvalidTokenHTTPException, IncorrectTokenHTTPException, \
+    ExpiredTokenHTTPException
 from src.database import new_session
 from src.services.auth import AuthService
 from src.utils.db_manager import DBManager
@@ -20,15 +23,20 @@ def get_access_token(request: Request) -> str:
     cookies = request.cookies  # new_case получить куки
     access_token = cookies.get("access_token")
     if not access_token:
-        raise HTTPException(status_code=401)
+        raise InvalidTokenHTTPException
     return access_token
 
 
 def get_payload_token(access_token: str = Depends(get_access_token)) -> int:
-    payload = AuthService().jwt_decode(access_token)
+    try:
+        payload = AuthService().jwt_decode(access_token)
+    except ExpiredSignatureError:
+        raise ExpiredTokenHTTPException
+    except InvalidSignatureError:
+        raise InvalidTokenHTTPException
     user_id = payload.get("user_id")
     if not user_id:
-        raise HTTPException(status_code=404)
+        raise IncorrectTokenHTTPException
     return user_id
 
 
