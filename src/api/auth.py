@@ -1,3 +1,5 @@
+import logging
+
 from fastapi import APIRouter, Response
 
 from src.api.dependecy import DepAccess, DepDB
@@ -7,6 +9,7 @@ from src.api.http_exceptions.http_exeptions import UserAlreadyExistsHTTPExceptio
     InvalidCredentialsHTTPException
 from src.schemas.users import UserReg
 from src.services.auth import AuthService
+from src.utils.logger_utils import exc_log_string
 
 router = APIRouter(prefix="/auth", tags=["Авторизация"])
 
@@ -15,7 +18,8 @@ router = APIRouter(prefix="/auth", tags=["Авторизация"])
 async def register_user(db: DepDB, data: UserReg):
     try:
         await AuthService(db).register_user(data)
-    except UserAlreadyExistsException:
+    except UserAlreadyExistsException as exc:
+        logging.warning(exc_log_string(exc))
         raise UserAlreadyExistsHTTPException
     return {"status": "ok"}
 

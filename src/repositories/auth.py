@@ -8,6 +8,7 @@ from src.models.users import UsersOrm
 from src.repositories.base import BaseRepository
 from src.repositories.mappers.mappers import AuthDataMapper
 from src.schemas.users import UserWithHashedPassword
+from src.utils.logger_utils import exc_log_string
 
 
 class AuthRepository(BaseRepository):
@@ -21,6 +22,6 @@ class AuthRepository(BaseRepository):
             model = result.scalar_one()
             return UserWithHashedPassword.model_validate(model, from_attributes=True)
         except NoResultFound as exc:
-            logging.error(f"{type(exc).__name__}: {exc}")
+            logging.error(exc_log_string(exc))
             raise ObjectNotFoundException from exc
 

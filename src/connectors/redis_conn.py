@@ -3,6 +3,7 @@ import logging
 from redis.asyncio import Redis
 
 from src.config import settings
+from src.utils.logger_utils import exc_log_string
 
 
 # new_case: создает экземпляр redis_client с кастомными методами
@@ -17,7 +18,7 @@ class RedisManager:
             self.redis_client = Redis(host=self.host, port=self.port, decode_responses=True)
             logging.info("Успешное подключение к Redis")
         except Exception as exc:
-            logging.error(f"Ошибка подключения к Redis: {type(exc).__name__}: {exc}")
+            logging.error(f"Ошибка подключения к Redis: {exc_log_string(exc)}")
 
     async def set(self, key: str, value: str, ex: int | None = None) -> bool:
         if self.redis_client is None:

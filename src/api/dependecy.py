@@ -1,3 +1,4 @@
+import logging
 from typing import Annotated
 
 from fastapi import Query, Depends, Request, HTTPException
@@ -9,6 +10,7 @@ from src.api.http_exceptions.http_exeptions import InvalidTokenHTTPException, In
 from src.database import new_session
 from src.services.auth import AuthService
 from src.utils.db_manager import DBManager
+from src.utils.logger_utils import exc_log_string
 
 
 class Pagination(BaseModel):
@@ -27,12 +29,17 @@ def get_access_token(request: Request) -> str:
     return access_token
 
 
+
+
+
 def get_payload_token(access_token: str = Depends(get_access_token)) -> int:
     try:
         payload = AuthService().jwt_decode(access_token)
-    except ExpiredSignatureError:
+    except ExpiredSignatureError as exc:
+        logging.debug(exc_log_string(exc))
         raise ExpiredTokenHTTPException
-    except InvalidSignatureError:
+    except InvalidSignatureError as exc:
+        logging.debug(exc_log_string(exc))
         raise InvalidTokenHTTPException
     user_id = payload.get("user_id")
     if not user_id:

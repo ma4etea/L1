@@ -55,7 +55,7 @@ def is_raise(
     #                                                             UniqueViolationError):  # new_case: вместо cause можно ex.orig.__cause__ но это не безопасный доступ
     #     raise ObjectAlreadyExistsException
     #
-    # logging.error(f"Вывод exc: {type(exc).__name__}: {exc}")
+    # logging.error(f"Вывод exc: exc_log_string(exc)")
     # logging.error("------------------------------------------------------")
     # logging.error(f"Вывод exc.orig: {type(exc).__name__}: {exc.orig}")
     # logging.error("------------------------------------------------------")

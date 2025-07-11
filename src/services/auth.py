@@ -1,3 +1,4 @@
+import logging
 from datetime import timedelta, datetime, timezone
 
 from fastapi import HTTPException
@@ -9,6 +10,7 @@ from src.exceptions.exeptions import ObjectAlreadyExistsException, UserAlreadyEx
     UserNotFoundException, InvalidCredentialsException
 from src.schemas.users import UserReg, UserAdd, User
 from src.services.base import BaseService
+from src.utils.logger_utils import exc_log_string
 
 
 class AuthService(BaseService):

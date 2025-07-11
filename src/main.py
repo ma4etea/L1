@@ -4,7 +4,7 @@ from pathlib import Path
 
 from fastapi_cache.backends.inmemory import InMemoryBackend
 
-
+from src.utils.logger_utils import exc_log_string
 
 sys.path.append(str(Path(__file__).parent.parent))
 from src.database import check_db
@@ -44,7 +44,7 @@ async def lifespan(app: FastAPI):
         ) # new_case: это позволяет над ручками вешать декоратор @cache это redis
         logging.info("FastAPICache успешно инициализирован с Redis")
     except Exception as exc:
-        logging.error(f"Ошибка инициализации FastAPICache: {type(exc).__name__}: {exc}")
+        logging.error(f"Ошибка инициализации FastAPICache: {exc_log_string(exc)}")
 
     yield
     await redis.close()

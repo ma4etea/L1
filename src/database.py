@@ -4,6 +4,7 @@ from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 from sqlalchemy.orm import DeclarativeBase
 
 from src.config import settings
+from src.utils.logger_utils import exc_log_string
 
 params = {}  # new_case: подмена engine для тестов
 if settings.MODE == "test":
@@ -24,7 +25,7 @@ async def check_db():
                 await session.execute(text("SELECT 1"))
                 logging.info("Успешное подключение к PostgreSQL")
         except Exception as exc:
-            logging.error(f"Ошибка подключения к PostgreSQL: {type(exc).__name__}: {exc}")
+            logging.error(f"Ошибка подключения к PostgreSQL: {exc_log_string(exc)}")
 
 
 
