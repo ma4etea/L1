@@ -1,12 +1,13 @@
+
+
 import sys
 from contextlib import asynccontextmanager
 from pathlib import Path
-
 from fastapi_cache.backends.inmemory import InMemoryBackend
-
+sys.path.append(str(Path(__file__).parent.parent))
 from src.utils.logger_utils import exc_log_string
 
-sys.path.append(str(Path(__file__).parent.parent))
+
 from src.database import check_db
 # from src.database import *
 from src.config import settings
@@ -68,7 +69,7 @@ app.include_router(images_router)
 
 
 if __name__ == "__main__":
-    uvicorn.run("main:app", reload=True, workers=None)
+    uvicorn.run("main:app", host="0.0.0.0" , reload=True, workers=None)
 
 # uvicorn main:app
 # fastapi dev main.py
