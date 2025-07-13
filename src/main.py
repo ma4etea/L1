@@ -43,7 +43,7 @@ async def lifespan(app: FastAPI):
         FastAPICache.init(
             RedisBackend(redis.redis_client), prefix="fastapi-cache"
         ) # new_case: это позволяет над ручками вешать декоратор @cache это redis
-        logging.info("FastAPICache успешно инициализирован с Redis")
+        logging.info("FastAPICache успешно инициализирован с Redis клиентом")
     except Exception as exc:
         logging.error(f"Ошибка инициализации FastAPICache: {exc_log_string(exc)}")
 

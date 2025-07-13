@@ -26,24 +26,48 @@
 
     sudo apt-get install ./docker-desktop-amd64.deb
 
+# Создание сети в докере
+    docker network create booking-network
 
-docker network create booking-network
+# Создание image
+    docker build -t booking-app-image:0.7 .
+    docker build --no-cache -t booking-app-image:0.7 .
 
-docker run  --name pg_booking \
-    --env-file .env.docker \
-    --network=booking-network \
-    -p 6432:5432 \
-    --volume pg-booking-data:/var/lib/postgresql/data \
-    -d postgres:16
+# Создание контейнеров
+    docker run  --name pg_booking \
+        --env-file .env.docker \
+        --network=booking-network \
+        -p 6432:5432 \
+        --volume pg-booking-data:/var/lib/postgresql/data \
+        -d postgres:16
 
 
-docker run --name cont-booking-redis \
-    --network=booking-network \
-    -p 7379:6379 \
-    -d redis:7.4
+    docker run --name cont-booking-redis \
+        --network=booking-network \
+        -p 7379:6379 \
+        -d redis:7.4
+    
+    docker run --name cont-booking-app \
+        --env-file .env.docker \
+        --network=booking-network \
+        -p 8888:8000 \
+        booking-app-image:0.7
 
-docker run --name cont-booking-app \
-    --env-file .env.docker \
-    --network=booking-network \
-    -p 8888:8000 \
-    booking-app-image
+    docker run --name cont-booking-app \
+        --env-file .env.docker \
+        --network=booking-network \
+        -p 8888:8000 \
+        booking-app-image:0.7
+
+
+    docker run --name celery-worker \ 
+        --env-file .env.docker \
+        --network=booking-network \
+        booking-app-image:0.7 \
+        celery --app=src.celery_tasks.celery_app:celery_inst worker --loglevel INFO
+    
+    docker run --name celery-beat \
+        --env-file .env.docker \
+        --network=booking-network \
+        booking-app-image:0.7 \
+        celery --app=src.celery_tasks.celery_app:celery_inst worker --loglevel INFO -B

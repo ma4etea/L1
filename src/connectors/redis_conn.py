@@ -16,7 +16,11 @@ class RedisManager:
     async def connect(self):
         try:
             self.redis_client = Redis(host=self.host, port=self.port, decode_responses=True)
-            logging.info("Успешное подключение к Redis")
+            resp = await self.redis_client.ping()
+            if resp is True:
+                logging.info("Успешное подключение к Redis")
+            else:
+                logging.warning(f"Redis ответил неожиданно: {resp}")
         except Exception as exc:
             logging.error(f"Ошибка подключения к Redis: {exc_log_string(exc)}")
 
