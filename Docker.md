@@ -34,7 +34,7 @@
     docker build --no-cache -t booking-app-image:0.7 .
 
 # Создание контейнеров
-    docker run  --name pg_booking \
+    docker run  --name pg-booking \
         --env-file .env.docker \
         --network=booking-network \
         -p 6432:5432 \
@@ -70,4 +70,7 @@
         --env-file .env.docker \
         --network=booking-network \
         booking-app-image:0.7 \
-        celery --app=src.celery_tasks.celery_app:celery_inst worker --loglevel INFO -B
+        celery --app=src.celery_tasks.celery_app:celery_inst beat --loglevel INFO
+
+git config --local user.name "Alexander Borodin"
+git config --local user.email "alexboradi@gmail.com"

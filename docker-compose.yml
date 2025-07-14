@@ -1,0 +1,42 @@
+services:
+  backend-app:
+    env_file:
+      - .env.docker
+    networks:
+      - booking-network
+    container_name: 'app-cont'
+    build:
+      context: .
+    ports:
+      - "8888:8000"
+
+
+
+  celery-worker:
+    env_file:
+      - .env.docker
+    networks:
+      - booking-network
+    container_name: 'celery-worker-cont'
+    build:
+      context: .
+    command: [ "celery", "--app=src.celery_tasks.celery_app:celery_inst", "worker", "--loglevel", "INFO" ]
+
+
+
+  celery-beat:
+    env_file:
+      - .env.docker
+    networks:
+      - booking-network
+    container_name: 'celery-beat-cont'
+    build:
+      context: .
+    command: [ "celery", "--app=src.celery_tasks.celery_app:celery_inst", "beat", "--loglevel", "INFO" ]
+
+
+networks:
+  booking-network:
+    external: true # позволяет работать сети между стеками docker compose
+
+name: "booking"
