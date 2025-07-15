@@ -39,7 +39,7 @@
         --volume /etc/letsencrypt/live:/etc/letsencrypt/live \
         --volume /etc/letsencrypt:/etc/letsencrypt \
         --network=booking-network \
-        --rm -p 80:80 nginx
+        -d -p 80:80 -p 443:443 nginx
 
     docker run  --name pg-booking \
         --env-file .env.docker \
