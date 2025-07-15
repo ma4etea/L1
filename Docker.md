@@ -49,7 +49,6 @@
 
     docker run --name cont-booking-redis \
         --network=booking-network \
-        -p 7379:6379 \
         -d redis:7.4
     
     docker run --name cont-booking-app \
