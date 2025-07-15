@@ -34,6 +34,11 @@
     docker build --no-cache -t booking-app-image:0.7 .
 
 # Создание контейнеров
+    docker run --name nginx-kooking \
+        --volume ./nginx.conf:/etc/nginx/nginx.conf \
+        --network=booking-network \
+        --rm -p 80:80 nginx
+
     docker run  --name pg-booking \
         --env-file .env.docker \
         --network=booking-network \
