@@ -34,8 +34,10 @@
     docker build --no-cache -t booking-app-image:0.7 .
 
 # Создание контейнеров
-    docker run --name nginx-kooking \
+    docker run --name nginx-booking \
         --volume ./nginx.conf:/etc/nginx/nginx.conf \
+        --volume /etc/letsencrypt/live:/etc/letsencrypt/live \
+        --volume /etc/letsencrypt:/etc/letsencrypt \
         --network=booking-network \
         --rm -p 80:80 nginx
 
