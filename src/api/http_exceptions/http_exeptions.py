@@ -20,6 +20,10 @@ class RoomNotFoundHTTPException(MyAppHTTPException):
     status_code = 404
     details = "Номер не найден"
 
+class RoomsNotFoundHTTPException(MyAppHTTPException):
+    status_code = 404
+    details = "Номера не найдены"
+
 class UserNotFoundHTTPException(MyAppHTTPException):
     status_code = 404
     details = "Пользователь не найден"

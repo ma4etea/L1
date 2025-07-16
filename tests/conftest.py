@@ -17,7 +17,7 @@ from src.database import BaseModel, new_session_null_pool, engine, new_session
 from src.main import app
 from src.models import * # noqa
 from src.schemas.hotels import HotelAdd
-from src.schemas.room import AddRoomToDb
+from src.schemas.rooms import AddRoomToDb
 from src.utils.db_manager import DBManager
 
 

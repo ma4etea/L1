@@ -12,8 +12,6 @@ from src.api.http_exceptions.http_exeptions import HotelNotFoundHTTPException, T
 from src.schemas.hotels import HotelPatch, HotelAdd
 from src.services.hotels import HotelService
 
-router = APIRouter(prefix="/hotels", tags=["Отели"])
-
 openapi_hotel_examples = {
     "1": {
         "summary": "Дубай",
@@ -53,23 +51,25 @@ openapi_hotel_examples = {
 }
 
 
+router = APIRouter(prefix="/hotels", tags=["Отели"])
+
+
 @router.get("")
 async def get_available_hotels(
-    db: DepDB,
-    date_from: date,
-    date_to: date,
-    pag: DepPagination,
-    title: str | None = Query(None, description="Название отеля"),
-    location: str | None = Query(None, description="Локация"),
+        db: DepDB,
+        date_from: date,
+        date_to: date,
+        pag: DepPagination,
+        title: str | None = Query(None, description="Название отеля"),
+        location: str | None = Query(None, description="Локация"),
 ):
-
     try:
         hotels = await HotelService(db).get_available_hotels(
-        date_from,
-        date_to,
-        pag,
-        title,
-        location,
+            date_from,
+            date_to,
+            pag,
+            title,
+            location,
         )
     except InvalidDateAfterDate:
         raise InvalidDateAfterDateHTTPException
@@ -79,10 +79,10 @@ async def get_available_hotels(
 
 @router.post("")
 async def add_hotel(
-    db: DepDB,
-    hotel_data: HotelAdd = Body(
-        openapi_examples=openapi_hotel_examples
-    ),
+        db: DepDB,
+        hotel_data: HotelAdd = Body(
+            openapi_examples=openapi_hotel_examples
+        ),
 ):
     try:
         hotel = await HotelService(db).add_hotel(hotel_data)
@@ -100,8 +100,6 @@ async def delete_hotel(db: DepDB, hotel_id: int = Path()):
         raise HotelNotFoundHTTPException
     except ToBigIdException:
         raise ToBigIdHTTPException
-
-
 
 
 @router.patch("/{hotel_id}")
@@ -125,9 +123,9 @@ async def edit_hotel(db: DepDB, hotel_id: int, hotel_data: HotelPatch):
     description="Только полное обновление",
 )
 async def upd_hotel(
-    db: DepDB,
-    hotel_id: int,
-    hotel_data: HotelAdd,
+        db: DepDB,
+        hotel_id: int,
+        hotel_data: HotelAdd,
 ):
     try:
         hotel = await HotelService(db).edit_hotel(hotel_id, hotel_data)
@@ -140,8 +138,8 @@ async def upd_hotel(
 
 @router.get("/{hotel_id}")
 async def get_hotel(
-    db: DepDB,
-    hotel_id: int = Path(),
+        db: DepDB,
+        hotel_id: int = Path(),
 ):
     try:
         result = await HotelService(db).get_hotel(hotel_id)

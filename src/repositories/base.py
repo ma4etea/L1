@@ -105,6 +105,8 @@ class BaseRepository:
             is_raise(exc=exc, reason=DataError, to_raise=ToBigIdException)
             is_raise(exc=exc, reason=PostgresSyntaxError, to_raise=StmtSyntaxErrorException)
             is_raise(exc=exc, reason=NotNullViolationError, to_raise=NotNullViolationException)
+            logging.error(exc_log_string(exc))
+            raise exc
         except Exception as exc:
             logging.error(exc_log_string(exc))
             raise exc

@@ -1,22 +1,66 @@
 from datetime import datetime
+from typing import Annotated
 
-from fastapi import APIRouter, Path
+from fastapi import APIRouter, Path, Body
 from src.api.dependecy import DepAccess, DepDB
 from src.exceptions.exeptions import ObjectNotFoundException, ToBigIdException, RoomNotFoundException, \
     HotelNotFoundException
-from src.api.http_exceptions.http_exeptions import HotelNotFoundHTTPException, RoomNotFoundHTTPException, ToBigIdHTTPException, \
-    FacilityNotFoundHTTPException
+from src.api.http_exceptions.http_exeptions import HotelNotFoundHTTPException, RoomNotFoundHTTPException, \
+    ToBigIdHTTPException, \
+    FacilityNotFoundHTTPException, RoomsNotFoundHTTPException
 from src.schemas.facilities import AddRoomsFacilities
-from src.schemas.room import AddRoom, AddRoomToDb, EditRoom
+from src.schemas.rooms import AddRoom, AddRoomToDb, EditRoom
 from src.services.room import RoomService
+
+openapi_room_examples = {
+    "1": {
+        "summary": "Дубай",
+        "value": {
+            "title": "Дубай мубай",
+            "location": "ОАЭ, г. Дубай, Шейх Заед Роуд 15"
+        },
+    },
+    "2": {
+        "summary": "Сочи",
+        "value": {
+            "title": "Сочи мочи",
+            "location": "Россия, г. Сочи, ул. Победы 434"
+        },
+    },
+    "3": {
+        "summary": "Париж",
+        "value": {
+            "title": "Париж Шанель",
+            "location": "Франция, Париж, ул. Риволи 12"
+        },
+    },
+    "4": {
+        "summary": "Токио",
+        "value": {
+            "title": "Токийская роскошь",
+            "location": "Япония, Токио, Сибуя 7-3-1"
+        },
+    },
+    "5": {
+        "summary": "Алматы",
+        "value": {
+            "title": "Алма Гранд",
+            "location": "Казахстан, г. Алматы, пр. Абая 99"
+        },
+    },
+}
 
 router = APIRouter(prefix="/hotels", tags=["Номера"])
 
 
 @router.get("/{hotel_id}/rooms")
-async def get_rooms(_: DepAccess, db: DepDB, hotel_id: int = Path()):
+async def get_rooms(_: DepAccess, db: DepDB, hotel_id: Annotated[int, Path(ge=1)]):
     try:
         rooms_with = await RoomService(db).get_rooms(hotel_id=hotel_id)
+    except HotelNotFoundException:
+        raise HotelNotFoundHTTPException
+    except RoomNotFoundException:
+        raise RoomsNotFoundHTTPException
     except ToBigIdException:
         raise ToBigIdHTTPException
     return {
@@ -40,8 +84,12 @@ async def get_room(
         raise ToBigIdHTTPException
     return {"status": "OK", "data": room}
 
+
 @router.post("/{hotel_id}/rooms")
-async def create_room(db: DepDB, room_data: AddRoom, hotel_id: int = Path()):
+async def create_room(
+        db: DepDB,
+        room_data: AddRoom = Body(openapi_examples=openapi_room_examples), # todo сделать примеры для добавления номера. и вернуть удобства
+        hotel_id: int = Path()):
     new_room_data = AddRoomToDb(**room_data.model_dump(), hotel_id=hotel_id)
     try:
         room = await db.rooms.add(new_room_data)
