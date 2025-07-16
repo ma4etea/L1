@@ -38,6 +38,10 @@ class FacilityNotFoundHTTPException(MyAppHTTPException):
 class UserAlreadyExistsHTTPException(MyAppHTTPException):
     status_code = 409
     details = "Пользователь уже существует"
+
+class HotelAlreadyExistsHTTPException(MyAppHTTPException):
+    status_code = 409
+    details = "Отель уже существует"
 #------------------------------------------------------------------------------
 
 class ToBigIdHTTPException(MyAppHTTPException):
@@ -67,3 +71,12 @@ class IncorrectTokenHTTPException(MyAppHTTPException):
 class ExpiredTokenHTTPException(MyAppHTTPException):
     status_code = 401
     details = "Токен истек"
+
+class StmtSyntaxErrorHTTPException(MyAppHTTPException):
+    status_code = 400
+    details = "Ошибка запроса"
+
+class NotNullViolationHTTPException(MyAppHTTPException):
+    status_code = 400
+    details = "Значение не может быть null"
+

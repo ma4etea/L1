@@ -1,17 +1,19 @@
 import logging
 from typing import Sequence
 
-from asyncpg import UniqueViolationError
+from asyncpg import UniqueViolationError, DataError, PostgresSyntaxError, NotNullViolationError
 from sqlalchemy.exc import IntegrityError, NoResultFound, DBAPIError
 from sqlalchemy.ext.asyncio import AsyncSession
 from pydantic import BaseModel as BaseSchema
 from src.database import engine, BaseModel
 from sqlalchemy import select, Insert, delete, update, Executable
 
-from src.exceptions.exeptions import ObjectNotFoundException, ToBigIdException, ObjectAlreadyExistsException
+from src.exceptions.exeptions import ObjectNotFoundException, ToBigIdException, ObjectAlreadyExistsException, \
+    UnexpectedResultFromDbException, StmtSyntaxErrorException, NotNullViolationException
 from src.exceptions.utils import is_raise
 from src.repositories.mappers.base import DataMapper
 from src.repositories.utils import sql_debag
+from src.utils.logger_utils import exc_log_string
 
 
 class BaseRepository:
@@ -95,8 +97,14 @@ class BaseRepository:
         try:
             result = await self.session.execute(stmt)
             model = result.scalar_one()
+            return model
         except NoResultFound:
             raise ObjectNotFoundException
-        except DBAPIError:
-            raise ToBigIdException
-        return model
+        except DBAPIError as exc:
+            logging.warning(f"Поймана ошибка в: DBAPIError")
+            is_raise(exc=exc, reason=DataError, to_raise=ToBigIdException)
+            is_raise(exc=exc, reason=PostgresSyntaxError, to_raise=StmtSyntaxErrorException)
+            is_raise(exc=exc, reason=NotNullViolationError, to_raise=NotNullViolationException)
+        except Exception as exc:
+            logging.error(exc_log_string(exc))
+            raise exc

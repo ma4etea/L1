@@ -39,6 +39,9 @@ class ObjectAlreadyExistsException(MyAppException):
 class UserAlreadyExistsException(ObjectAlreadyExistsException):
     details = "Пользователь уже существует"
 
+class HotelAlreadyExistsException(ObjectAlreadyExistsException):
+    details = "Отель уже существует"
+
 # -----------------------------------------------------------------------
 
 
@@ -49,6 +52,9 @@ class ToBigIdException(MyAppException):
 class UnexpectedResultFromDbException(MyAppException):
     details = "Неожиданный результат из db"
 
+class StmtSyntaxErrorException(MyAppException):
+    details = "Ошибка синтаксиса запроса в db"
+
 class InvalidCredentialsException(MyAppException):
     details = "Неверные данные авторизации"
 
@@ -57,3 +63,6 @@ class NoAvailableRoom(MyAppException):
 
 class InvalidDateAfterDate(MyAppException):
     details = "Дата заезда должна быть раньше выезда"
+
+class NotNullViolationException(MyAppException):
+    details = "Значение в db не может быть null"

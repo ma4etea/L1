@@ -4,24 +4,54 @@ from fastapi import Query, Body, Path, APIRouter
 
 from src.api.dependecy import DepPagination, DepDB
 from src.exceptions.exeptions import ToBigIdException, \
-    HotelNotFoundException, InvalidDateAfterDate
+    HotelNotFoundException, InvalidDateAfterDate, HotelAlreadyExistsException, StmtSyntaxErrorException, \
+    NotNullViolationException
 from src.api.http_exceptions.http_exeptions import HotelNotFoundHTTPException, ToBigIdHTTPException, \
-    InvalidDateAfterDateHTTPException
+    InvalidDateAfterDateHTTPException, HotelAlreadyExistsHTTPException, StmtSyntaxErrorHTTPException, \
+    NotNullViolationHTTPException
 from src.schemas.hotels import HotelPatch, HotelAdd
 from src.services.hotels import HotelService
 
 router = APIRouter(prefix="/hotels", tags=["Отели"])
 
 openapi_hotel_examples = {
-            "1": {
-                "summary": "Дубай",
-                "value": {"title": "Дубай мубай", "location": "sjdhisu"},
-            },
-            "2": {
-                "summary": "Сочи",
-                "value": {"title": "Сочи мочи", "location": "sjdhisu"},
-            },
-        }
+    "1": {
+        "summary": "Дубай",
+        "value": {
+            "title": "Дубай мубай",
+            "location": "ОАЭ, г. Дубай, Шейх Заед Роуд 15"
+        },
+    },
+    "2": {
+        "summary": "Сочи",
+        "value": {
+            "title": "Сочи мочи",
+            "location": "Россия, г. Сочи, ул. Победы 434"
+        },
+    },
+    "3": {
+        "summary": "Париж",
+        "value": {
+            "title": "Париж Шанель",
+            "location": "Франция, Париж, ул. Риволи 12"
+        },
+    },
+    "4": {
+        "summary": "Токио",
+        "value": {
+            "title": "Токийская роскошь",
+            "location": "Япония, Токио, Сибуя 7-3-1"
+        },
+    },
+    "5": {
+        "summary": "Алматы",
+        "value": {
+            "title": "Алма Гранд",
+            "location": "Казахстан, г. Алматы, пр. Абая 99"
+        },
+    },
+}
+
 
 @router.get("")
 async def get_available_hotels(
@@ -54,7 +84,10 @@ async def add_hotel(
         openapi_examples=openapi_hotel_examples
     ),
 ):
-    hotel = await HotelService(db).add_hotel(hotel_data)
+    try:
+        hotel = await HotelService(db).add_hotel(hotel_data)
+    except HotelAlreadyExistsException:
+        raise HotelAlreadyExistsHTTPException
     return {"status": "ok", "data": hotel}
 
 
@@ -79,6 +112,10 @@ async def edit_hotel(db: DepDB, hotel_id: int, hotel_data: HotelPatch):
         raise HotelNotFoundHTTPException
     except ToBigIdException:
         raise ToBigIdHTTPException
+    except StmtSyntaxErrorException:
+        raise StmtSyntaxErrorHTTPException
+    except NotNullViolationException:
+        raise NotNullViolationHTTPException
     return {"status": "OK", "data": hotel}
 
 

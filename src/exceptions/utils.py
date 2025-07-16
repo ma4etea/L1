@@ -1,8 +1,10 @@
+import logging
 from datetime import date
 from typing import Type, Tuple, TypeVar
 
 
 from src.exceptions.exeptions import InvalidDateAfterDate
+from src.utils.logger_utils import exc_log_string
 
 
 def check_data_from_after_date_to_http_exc(date_from: date, date_to: date):
@@ -44,8 +46,10 @@ def is_raise(
         return False
 
     orig = getattr(exc, "orig", None)
-    if walk_causes(orig):
-        raise to_raise()
+    if isinstance(orig, reason) or walk_causes(orig):
+        logging.warning(exc_log_string(exc))
+        raise to_raise() from exc
+
 
     #
     # # # new_case: Так можно безопасно доставать вложеные(обернутые ошибки)

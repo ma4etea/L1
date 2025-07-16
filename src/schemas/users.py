@@ -7,8 +7,10 @@ from pydantic import BaseModel, EmailStr, Field, field_validator
 class UserReg(BaseModel):
     email: EmailStr
     password: Annotated[
-        str, Field(min_length=8, max_length=20,
-                   description="Пароль от 8 до 20 символов. "
+        str, Field(min_length=8,
+                   max_length=50,
+                   examples=["Ff7!54545"],
+                   description="Пароль от 8 до 50 символов. "
                                "Должен содержать минимум 1 заглавную букву, "
                                "1 строчную, 1 цифру и 1 спецсимвол (!@#$%^&* и т.д.)"
                                "Например: Qwer123$"

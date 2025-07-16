@@ -2,7 +2,8 @@ import logging
 from datetime import date
 
 from src.api.dependecy import DepPagination
-from src.exceptions.exeptions import ObjectNotFoundException, HotelNotFoundException
+from src.exceptions.exeptions import ObjectNotFoundException, HotelNotFoundException, HotelAlreadyExistsException, \
+    ObjectAlreadyExistsException
 from src.exceptions.utils import check_data_from_after_date_to_http_exc
 from src.schemas.hotels import HotelAdd, HotelPatch, Hotel
 from src.services.base import BaseService
@@ -27,7 +28,10 @@ class HotelService(BaseService):
         )
 
     async def add_hotel(self, hotel_data: HotelAdd ):
-        hotel = await self.db.hotels.add(hotel_data)
+        try:
+            hotel = await self.db.hotels.add(hotel_data)
+        except ObjectAlreadyExistsException:
+            raise HotelAlreadyExistsException
         await self.db.commit()
         return hotel
 
