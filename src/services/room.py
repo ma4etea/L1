@@ -1,9 +1,10 @@
 from datetime import date
 
 from src.api.dependecy import DepPagination
-from src.exceptions.exeptions import ObjectNotFoundException, RoomNotFoundException
+from src.exceptions.exeptions import ObjectNotFoundException, RoomNotFoundException, FacilityNotFoundException
 from src.exceptions.utils import check_data_from_after_date_to_http_exc
-from src.schemas.rooms import Room, RoomWith
+from src.schemas.facilities import AddRoomsFacilities
+from src.schemas.rooms import Room, RoomWith, AddRoomToDb, AddRoom
 from src.services.base import BaseService
 from src.services.hotels import HotelService
 
@@ -58,3 +59,20 @@ class RoomService(BaseService):
         await self.check_room(room_id=room_id)
         await self.db.rooms.delete(hotel_id=hotel_id, id=room_id)
         await self.db.commit()
+
+    async def create_room(self, hotel_id: int, room_data: AddRoom) -> Room:
+        await HotelService(self.db).check_hotel(hotel_id)
+        new_room_data = AddRoomToDb(**room_data.model_dump(), hotel_id=hotel_id)
+        room: Room = await self.db.rooms.add(new_room_data)
+
+        if room_data.facilities_ids:
+            try:
+                await self.db.rooms_facilities.add_bulk(
+                    [AddRoomsFacilities(room_id=room.id, facility_id=id_) for id_ in room_data.facilities_ids]
+                )
+            except ObjectNotFoundException as exc:
+                raise FacilityNotFoundException from exc
+
+        await self.db.commit()
+        return room
+

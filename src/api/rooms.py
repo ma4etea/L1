@@ -4,7 +4,7 @@ from typing import Annotated
 from fastapi import APIRouter, Path, Body
 from src.api.dependecy import DepAccess, DepDB
 from src.exceptions.exeptions import ObjectNotFoundException, ToBigIdException, RoomNotFoundException, \
-    HotelNotFoundException
+    HotelNotFoundException, FacilityNotFoundException
 from src.api.http_exceptions.http_exeptions import HotelNotFoundHTTPException, RoomNotFoundHTTPException, \
     ToBigIdHTTPException, \
     FacilityNotFoundHTTPException, RoomsNotFoundHTTPException
@@ -14,41 +14,57 @@ from src.services.room import RoomService
 
 openapi_room_examples = {
     "1": {
-        "summary": "Дубай",
+        "summary": "Студия",
         "value": {
-            "title": "Дубай мубай",
-            "location": "ОАЭ, г. Дубай, Шейх Заед Роуд 15"
+            "title": "Студия",
+            "description": "С видом на бархан",
+            "price": 1300,
+            "quantity": 5,
+            "facilities_ids": [1]
         },
     },
     "2": {
-        "summary": "Сочи",
+        "summary": "Стандартный",
         "value": {
-            "title": "Сочи мочи",
-            "location": "Россия, г. Сочи, ул. Победы 434"
+            "title": "Стандартный номер",
+            "description": "Уютный номер с двуспальной кроватью",
+            "price": 2200,
+            "quantity": 8,
+            "facilities_ids": [1, 2]
         },
     },
     "3": {
-        "summary": "Париж",
+        "summary": "Семейный",
         "value": {
-            "title": "Париж Шанель",
-            "location": "Франция, Париж, ул. Риволи 12"
+            "title": "Семейный номер",
+            "description": "Просторный номер с двумя спальнями",
+            "price": 3500,
+            "quantity": 3,
+            "facilities_ids": [1, 2, 4]
         },
     },
     "4": {
-        "summary": "Токио",
+        "summary": "Люкс",
         "value": {
-            "title": "Токийская роскошь",
-            "location": "Япония, Токио, Сибуя 7-3-1"
+            "title": "Люкс",
+            "description": "Роскошный номер с джакузи и балконом",
+            "price": 4800,
+            "quantity": 2,
+            "facilities_ids": [1, 2, 3, 4]
         },
     },
     "5": {
-        "summary": "Алматы",
+        "summary": "Апартаменты",
         "value": {
-            "title": "Алма Гранд",
-            "location": "Казахстан, г. Алматы, пр. Абая 99"
+            "title": "Апартаменты",
+            "description": "С видом на море",
+            "price": 5500,
+            "quantity": 1,
+            "facilities_ids": [1, 2, 3, 4, 5]
         },
     },
 }
+
 
 router = APIRouter(prefix="/hotels", tags=["Номера"])
 
@@ -71,10 +87,10 @@ async def get_rooms(_: DepAccess, db: DepDB, hotel_id: Annotated[int, Path(ge=1)
 
 @router.get("/{hotel_id}/rooms/{room_id}")
 async def get_room(
-    _: DepAccess,
-    db: DepDB,
-    hotel_id: int = Path(),
-    room_id: int = Path(),
+        _: DepAccess,
+        db: DepDB,
+        hotel_id: int = Path(),
+        room_id: int = Path(),
 ):
     try:
         room = await RoomService(db).get_room(hotel_id, room_id)
@@ -88,26 +104,19 @@ async def get_room(
 @router.post("/{hotel_id}/rooms")
 async def create_room(
         db: DepDB,
-        room_data: AddRoom = Body(openapi_examples=openapi_room_examples), # todo сделать примеры для добавления номера. и вернуть удобства
-        hotel_id: int = Path()):
-    new_room_data = AddRoomToDb(**room_data.model_dump(), hotel_id=hotel_id)
+        room_data: AddRoom = Body(openapi_examples=openapi_room_examples),
+        hotel_id: int = Path(ge=1)):
     try:
-        room = await db.rooms.add(new_room_data)
-    except ObjectNotFoundException:
+        room = await RoomService(db).create_room(hotel_id, room_data)
+    except HotelNotFoundException:
         raise HotelNotFoundHTTPException
-    except ToBigIdException:
-        raise ToBigIdHTTPException
-
-    try:
-        await db.rooms_facilities.add_bulk(
-            [AddRoomsFacilities(room_id=room.id, facility_id=id_) for id_ in room_data.facilities_ids]
-        )
-    except ObjectNotFoundException:
+    except FacilityNotFoundException:
         raise FacilityNotFoundHTTPException
     except ToBigIdException:
         raise ToBigIdHTTPException
 
-    await db.commit()
+
+        # todo вернуть удобства в ответе
 
     return {
         "status": "OK",
@@ -117,10 +126,10 @@ async def create_room(
 
 @router.delete("/{hotel_id}/rooms/{room_id}")
 async def remove_room(
-    _: DepAccess,
-    db: DepDB,
-    hotel_id: int = Path(),
-    room_id: int = Path(),
+        _: DepAccess,
+        db: DepDB,
+        hotel_id: int = Path(),
+        room_id: int = Path(),
 ):
     try:
         await RoomService(db).remove_room(hotel_id, room_id)
@@ -135,11 +144,11 @@ async def remove_room(
 
 @router.put("/{hotel_id}/rooms/{room_id}")
 async def update_room(
-    db: DepDB,
-    _: DepAccess,
-    room_data: AddRoom,
-    hotel_id: int = Path(),
-    room_id: int = Path(),
+        db: DepDB,
+        _: DepAccess,
+        room_data: AddRoom,
+        hotel_id: int = Path(),
+        room_id: int = Path(),
 ):
     start_data = datetime.now()
     try:
@@ -157,11 +166,11 @@ async def update_room(
 
 @router.patch("/{hotel_id}/rooms/{room_id}")
 async def edit_room(
-    _: DepAccess,
-    db: DepDB,
-    room_data: EditRoom,
-    hotel_id: int = Path(),
-    room_id: int = Path(),
+        _: DepAccess,
+        db: DepDB,
+        room_data: EditRoom,
+        hotel_id: int = Path(),
+        room_id: int = Path(),
 ):
     room = await db.rooms.edit_room(
         room_data, exclude_unset=True, hotel_id=hotel_id, room_id=room_id
@@ -173,11 +182,11 @@ async def edit_room(
 
 @router.put("/{hotel_id}/rooms_shymeiko/{room_id}")
 async def update_room_shymeiko(
-    db: DepDB,
-    _: DepAccess,
-    room_data: AddRoom,
-    hotel_id: int = Path(),
-    room_id: int = Path(),
+        db: DepDB,
+        _: DepAccess,
+        room_data: AddRoom,
+        hotel_id: int = Path(),
+        room_id: int = Path(),
 ):
     start_data = datetime.now()
     if room_data.facilities_ids is not None:
@@ -194,11 +203,11 @@ async def update_room_shymeiko(
 
 @router.patch("/{hotel_id}/rooms_shymeiko/{room_id}")
 async def edit_room_shymeiko(
-    _: DepAccess,
-    db: DepDB,
-    room_data: EditRoom,
-    hotel_id: int = Path(),
-    room_id: int = Path(),
+        _: DepAccess,
+        db: DepDB,
+        room_data: EditRoom,
+        hotel_id: int = Path(),
+        room_id: int = Path(),
 ):
     start_data = datetime.now()
     if room_data.facilities_ids is not None:
