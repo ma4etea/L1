@@ -2,6 +2,39 @@ from pydantic import BaseModel, model_validator
 from fastapi import HTTPException
 
 class PatchValidatorMixin(BaseModel):
+    """
+    Миксин для Pydantic-моделей, предназначенных для PATCH-запросов.
+
+    Цель миксина — гарантировать, что при частичном обновлении (PATCH)
+    клиент передаёт хотя бы одно поле.
+
+    Если в запросе не передано ни одного поля (модель пуста),
+    будет выброшено исключение HTTP 422 с сообщением:
+
+        "Нужно передать хотя бы одно поле"
+
+    Это позволяет избежать бессмысленных PATCH-запросов без содержимого.
+
+    Пример использования:
+
+    ```python
+    class EditRoom(PatchValidatorMixin):
+        title: str = None
+        description: str | None = None
+    ```
+
+    ```json
+    {} # ❌ вызовет HTTPException 422
+    {title="Новый заголовок"} # ✅ корректно
+    {description="Новое описание"} # ✅ корректно
+    ```
+
+    Замечание:
+    - Поля должны иметь значение по умолчанию `None`, чтобы быть опциональными.
+    - Эта проверка выполняется после всех остальных валидаторов Pydantic.
+
+    """
+
     @model_validator(mode="after")
     def at_least_one_non_null(self):
         data = self.model_dump(exclude_unset=True)
@@ -11,30 +44,4 @@ class PatchValidatorMixin(BaseModel):
                 status_code=422,
                 detail="Нужно передать хотя бы одно поле",
             )
-        if all(value is None for value in data.values()):
-            fields = ", ".join(data.keys())
-            raise HTTPException(
-                status_code=422,
-                detail=f"Поля [{fields}] не могут быть одновременно null",
-            )
         return self
-
-class RemoveNullFieldsMixin(BaseModel):
-    @model_validator(mode="before")
-    def remove_null_fields(cls, data):
-        if isinstance(data, dict):
-            return {k: v for k, v in data.items() if v is not None}
-        return data
-
-class RejectNullFieldsMixin(BaseModel):
-    @model_validator(mode="before")
-    def reject_nulls(cls, data):
-        if isinstance(data, dict):
-            null_fields = [key for key, value in data.items() if value is None]
-            if null_fields:
-                fields = ", ".join(null_fields)
-                raise HTTPException(
-                    status_code=422,
-                    detail=f"Поля [{fields}] не могут быть null",
-                )
-        return data

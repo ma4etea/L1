@@ -89,11 +89,13 @@ async def get_rooms(_: DepAccess, db: DepDB, hotel_id: Annotated[int, Path(ge=1)
 async def get_room(
         _: DepAccess,
         db: DepDB,
-        hotel_id: int = Path(),
-        room_id: int = Path(),
+        hotel_id: int = Path(ge=1),
+        room_id: int = Path(ge=1),
 ):
     try:
         room = await RoomService(db).get_room(hotel_id, room_id)
+    except HotelNotFoundException:
+        raise HotelNotFoundHTTPException
     except RoomNotFoundException:
         raise RoomNotFoundHTTPException
     except ToBigIdException:
@@ -107,7 +109,7 @@ async def create_room(
         room_data: AddRoom = Body(openapi_examples=openapi_room_examples),
         hotel_id: int = Path(ge=1)):
     try:
-        room = await RoomService(db).create_room(hotel_id, room_data)
+        room_with = await RoomService(db).create_room(hotel_id, room_data)
     except HotelNotFoundException:
         raise HotelNotFoundHTTPException
     except FacilityNotFoundException:
@@ -115,12 +117,9 @@ async def create_room(
     except ToBigIdException:
         raise ToBigIdHTTPException
 
-
-        # todo вернуть удобства в ответе
-
     return {
         "status": "OK",
-        "data": room,
+        "data": room_with,
     }
 
 
@@ -128,8 +127,8 @@ async def create_room(
 async def remove_room(
         _: DepAccess,
         db: DepDB,
-        hotel_id: int = Path(),
-        room_id: int = Path(),
+        hotel_id: int = Path(ge=1),
+        room_id: int = Path(ge=1),
 ):
     try:
         await RoomService(db).remove_room(hotel_id, room_id)
@@ -146,47 +145,52 @@ async def remove_room(
 async def update_room(
         db: DepDB,
         _: DepAccess,
-        room_data: AddRoom,
-        hotel_id: int = Path(),
-        room_id: int = Path(),
+        room_data: AddRoom = Body(openapi_examples=openapi_room_examples),
+        hotel_id: int = Path(ge=1),
+        room_id: int = Path(ge=1),
 ):
-    start_data = datetime.now()
     try:
-        room = await db.rooms.edit_room(room_data, hotel_id=hotel_id, room_id=room_id)
-    except ObjectNotFoundException:
+        room_with = await RoomService(db).update_room(room_data, hotel_id=hotel_id, room_id=room_id)
+    except HotelNotFoundException:
+        raise HotelNotFoundHTTPException
+    except RoomNotFoundException:
         raise RoomNotFoundHTTPException
+    except FacilityNotFoundException as exc:
+        raise FacilityNotFoundHTTPException(detail=exc.details)
     except ToBigIdException:
         raise ToBigIdHTTPException
 
-    end_data = datetime.now()
-    print(end_data - start_data)
-
-    return {"status": "OK", "data": room}
+    return {"status": "OK", "data": room_with}
 
 
 @router.patch("/{hotel_id}/rooms/{room_id}")
 async def edit_room(
         _: DepAccess,
         db: DepDB,
-        room_data: EditRoom,
-        hotel_id: int = Path(),
-        room_id: int = Path(),
+        room_data: EditRoom = Body(openapi_examples=openapi_room_examples),
+        hotel_id: int = Path(ge=1),
+        room_id: int = Path(ge=1),
 ):
-    room = await db.rooms.edit_room(
-        room_data, exclude_unset=True, hotel_id=hotel_id, room_id=room_id
-    )
-    await db.commit()
+    try:
+        room_with = await RoomService(db).edit_room(room_data, hotel_id=hotel_id, room_id=room_id)
+    except HotelNotFoundException:
+        raise HotelNotFoundHTTPException
+    except RoomNotFoundException:
+        raise RoomNotFoundHTTPException
+    except FacilityNotFoundException as exc:
+        raise FacilityNotFoundHTTPException(detail=exc.details)
+    except ToBigIdException:
+        raise ToBigIdHTTPException
+    return {"status": "OK", "data": room_with}
 
-    return {"status": "OK", "data": room}
 
-
-@router.put("/{hotel_id}/rooms_shymeiko/{room_id}")
+# @router.put("/{hotel_id}/rooms_shymeiko/{room_id}")
 async def update_room_shymeiko(
         db: DepDB,
         _: DepAccess,
         room_data: AddRoom,
-        hotel_id: int = Path(),
-        room_id: int = Path(),
+        hotel_id: int = Path(ge=1),
+        room_id: int = Path(ge=1),
 ):
     start_data = datetime.now()
     if room_data.facilities_ids is not None:
@@ -201,13 +205,13 @@ async def update_room_shymeiko(
     return {"status": "OK", "data": room}
 
 
-@router.patch("/{hotel_id}/rooms_shymeiko/{room_id}")
+# @router.patch("/{hotel_id}/rooms_shymeiko/{room_id}")
 async def edit_room_shymeiko(
         _: DepAccess,
         db: DepDB,
         room_data: EditRoom,
-        hotel_id: int = Path(),
-        room_id: int = Path(),
+        hotel_id: int = Path(ge=1),
+        room_id: int = Path(ge=1),
 ):
     start_data = datetime.now()
     if room_data.facilities_ids is not None:

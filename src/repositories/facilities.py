@@ -10,6 +10,11 @@ class FacilitiesRepository(BaseRepository):
     model = FacilitiesOrm
     mapper = FacilityDataMapper
 
+    async def get_facilities_by_ids(self, ids: list[int]):
+        if not ids:
+            return []
+        return await self.get_all(None, None, self.model.id.in_(ids))
+
 
 class RoomsFacilitiesRepository(BaseRepository):
     model = RoomsFacilitiesORM

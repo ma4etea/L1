@@ -27,6 +27,8 @@ class BookingNotFoundException(ObjectNotFoundException):
 
 
 class FacilityNotFoundException(ObjectNotFoundException):
+    def __init__(self, details: str):
+        self.details = details
     details = "Удобство не найдено"
 
 

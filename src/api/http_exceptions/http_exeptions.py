@@ -35,6 +35,8 @@ class BookingNotFoundHTTPException(MyAppHTTPException):
 
 
 class FacilityNotFoundHTTPException(MyAppHTTPException):
+    def __init__(self, detail: str):
+        self.detail = detail
     status_code = 404
     details = "Удобство не найдено"
 

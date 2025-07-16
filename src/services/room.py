@@ -4,8 +4,9 @@ from src.api.dependecy import DepPagination
 from src.exceptions.exeptions import ObjectNotFoundException, RoomNotFoundException, FacilityNotFoundException
 from src.exceptions.utils import check_data_from_after_date_to_http_exc
 from src.schemas.facilities import AddRoomsFacilities
-from src.schemas.rooms import Room, RoomWith, AddRoomToDb, AddRoom
+from src.schemas.rooms import Room, RoomWith, AddRoomToDb, AddRoom, EditRoom
 from src.services.base import BaseService
+from src.services.facility import FacilityService
 from src.services.hotels import HotelService
 
 
@@ -48,6 +49,7 @@ class RoomService(BaseService):
         return rooms_with
 
     async def get_room(self, hotel_id: int, room_id: int) -> RoomWith:
+        await HotelService(self.db).check_hotel(hotel_id)
         try:
             room_with = await self.db.rooms.get_room_with(hotel_id=hotel_id, id=room_id)
         except ObjectNotFoundException as exc:
@@ -60,11 +62,11 @@ class RoomService(BaseService):
         await self.db.rooms.delete(hotel_id=hotel_id, id=room_id)
         await self.db.commit()
 
-    async def create_room(self, hotel_id: int, room_data: AddRoom) -> Room:
+    async def create_room(self, hotel_id: int, room_data: AddRoom) -> RoomWith:
         await HotelService(self.db).check_hotel(hotel_id)
         new_room_data = AddRoomToDb(**room_data.model_dump(), hotel_id=hotel_id)
         room: Room = await self.db.rooms.add(new_room_data)
-
+        await FacilityService(self.db).check_facilities(room_data.facilities_ids)
         if room_data.facilities_ids:
             try:
                 await self.db.rooms_facilities.add_bulk(
@@ -73,6 +75,30 @@ class RoomService(BaseService):
             except ObjectNotFoundException as exc:
                 raise FacilityNotFoundException from exc
 
+        room_with: RoomWith = await self.db.rooms.get_room_with(id=room.id)
         await self.db.commit()
-        return room
+        return room_with
+
+    async def update_room(self, room_data: AddRoom, hotel_id: int, room_id: int) -> RoomWith:
+        await HotelService(self.db).check_hotel(hotel_id)
+        await self.check_room(room_id)
+        await FacilityService(self.db).check_facilities(room_data.facilities_ids)
+        await self.db.rooms.edit_room(room_data, hotel_id=hotel_id, room_id=room_id)
+        room_with: RoomWith = await self.db.rooms.get_room_with(id=room_id)
+        await self.db.commit()
+        return room_with
+
+    async def edit_room(self, room_data: EditRoom, hotel_id: int, room_id: int) -> RoomWith:
+        await HotelService(self.db).check_hotel(hotel_id)
+        await self.check_room(room_id)
+        if room_data.facilities_ids:
+            await FacilityService(self.db).check_facilities(room_data.facilities_ids)
+        await self.db.rooms.edit_room(
+            room_data, exclude_unset=True, hotel_id=hotel_id, room_id=room_id
+        )
+        room_with: RoomWith = await self.db.rooms.get_room_with(id=room_id)
+        await self.db.commit()
+        return room_with
+
+
 

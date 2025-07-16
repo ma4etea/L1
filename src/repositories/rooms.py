@@ -134,18 +134,18 @@ class RoomsRepository(BaseRepository):
                 if add_facilities is not None:
                     stmt = stmt.add_cte(add_facilities)
 
-        print(stmt.compile(bind=engine, compile_kwargs={"literal_binds": True}))
+        logging.debug(sql_debag(stmt))
 
         """IntegrityError, DBAPIError"""
         try:
             result = await self.session.execute(stmt)
+            room_orm = result.scalar()
+            return self.mapper.to_domain(room_orm)
         except IntegrityError:
             raise ObjectNotFoundException
         except DBAPIError:
             raise ToBigIdException
-        room_orm = result.scalar()
 
-        return self.mapper.to_domain(room_orm)
 
     async def get_rooms_with(self, **filter_by):
         query = (

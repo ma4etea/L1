@@ -2,6 +2,7 @@ import json
 
 from src.celery_tasks.tasks import task1
 from src.connectors.redis_conn import redis
+from src.exceptions.exeptions import FacilityNotFoundException
 from src.schemas.facilities import AddFacility, Facility
 from src.services.base import BaseService
 
@@ -27,3 +28,11 @@ class FacilityService(BaseService):
 
     async def get_facilities_cached(self) -> list[Facility]:
         return await self.db.facilities.get_all()
+
+    async def check_facilities(self, ids:list[int]):
+        facilities: list[Facility] = await self.db.facilities.get_facilities_by_ids(ids)
+        ids_from_db = {facility.id for facility in facilities}
+        nonexistent_ids = set(ids) - ids_from_db
+        if nonexistent_ids:
+            raise FacilityNotFoundException(details=f"Удобства не найдены id:{list(nonexistent_ids)}")
+        return facilities

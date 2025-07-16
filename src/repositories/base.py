@@ -23,8 +23,8 @@ class BaseRepository:
     def __init__(self, session: AsyncSession):
         self.session = session
 
-    async def get_all(self, offset: int = None, limit: int = None, *args, **kwargs):
-        query = select(self.model).filter(*args).filter_by(**kwargs)
+    async def get_all(self, offset: int = None, limit: int = None, *filter_, **filter_by):
+        query = select(self.model).filter(*filter_).filter_by(**filter_by)
         if offset:
             query = query.offset(offset=offset)
         if limit:

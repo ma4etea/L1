@@ -139,7 +139,7 @@ async def upd_hotel(
 @router.get("/{hotel_id}")
 async def get_hotel(
         db: DepDB,
-        hotel_id: int = Path(),
+        hotel_id: int = Path(ge=1),
 ):
     try:
         result = await HotelService(db).get_hotel(hotel_id)
