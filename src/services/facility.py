@@ -2,7 +2,8 @@ import json
 
 from src.celery_tasks.tasks import task1
 from src.connectors.redis_conn import redis
-from src.exceptions.exeptions import FacilityNotFoundException
+from src.exceptions.exeptions import FacilityNotFoundException, ObjectAlreadyExistsException, \
+    FacilityAlreadyExistsException, ObjectNotFoundException
 from src.schemas.facilities import AddFacility, Facility
 from src.services.base import BaseService
 
@@ -10,7 +11,10 @@ from src.services.base import BaseService
 class FacilityService(BaseService):
     async def create_facility(self, data_facility: AddFacility):
         task1.delay()
-        facility = await self.db.facilities.add(data_facility)
+        try:
+            facility = await self.db.facilities.add(data_facility)
+        except ObjectAlreadyExistsException as exc:
+            raise FacilityAlreadyExistsException from exc
         await self.db.commit()
         return facility
 
@@ -36,3 +40,11 @@ class FacilityService(BaseService):
         if nonexistent_ids:
             raise FacilityNotFoundException(details=f"Удобства не найдены id:{list(nonexistent_ids)}")
         return facilities
+
+    async def update_facility(self, data_facility: AddFacility, facility_id: int) -> Facility:
+        try:
+            facility: Facility = await self.db.facilities.edit(data_facility, id=facility_id)
+        except ObjectNotFoundException as exc:
+            raise FacilityNotFoundException from exc
+        await self.db.commit()
+        return facility

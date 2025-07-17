@@ -44,11 +44,20 @@ class UserAlreadyExistsException(ObjectAlreadyExistsException):
 class HotelAlreadyExistsException(ObjectAlreadyExistsException):
     details = "Отель уже существует"
 
+class FacilityAlreadyExistsException(ObjectAlreadyExistsException):
+    details = "Удобство уже существует"
+
 # -----------------------------------------------------------------------
 
 
 class ToBigIdException(MyAppException):
     details = "Слишком большой id"
+
+class OffsetToBigException(MyAppException):
+    details = "Слишком большой Offset"
+
+class LimitToBigException(MyAppException):
+    details = "Слишком большой Limit"
 
 
 class UnexpectedResultFromDbException(MyAppException):

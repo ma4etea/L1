@@ -7,7 +7,7 @@ from src.exceptions.exeptions import ObjectNotFoundException, ToBigIdException, 
     HotelNotFoundException, FacilityNotFoundException
 from src.api.http_exceptions.http_exeptions import HotelNotFoundHTTPException, RoomNotFoundHTTPException, \
     ToBigIdHTTPException, \
-    FacilityNotFoundHTTPException, RoomsNotFoundHTTPException
+    FacilityNotFoundHTTPException, RoomsNotFoundHTTPException, FacilitiesNotFoundHTTPException
 from src.schemas.facilities import AddRoomsFacilities
 from src.schemas.rooms import AddRoom, AddRoomToDb, EditRoom
 from src.services.room import RoomService
@@ -178,7 +178,7 @@ async def edit_room(
     except RoomNotFoundException:
         raise RoomNotFoundHTTPException
     except FacilityNotFoundException as exc:
-        raise FacilityNotFoundHTTPException(detail=exc.details)
+        raise FacilitiesNotFoundHTTPException(detail=exc.details)
     except ToBigIdException:
         raise ToBigIdHTTPException
     return {"status": "OK", "data": room_with}

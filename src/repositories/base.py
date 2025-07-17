@@ -9,7 +9,8 @@ from src.database import engine, BaseModel
 from sqlalchemy import select, Insert, delete, update, Executable
 
 from src.exceptions.exeptions import ObjectNotFoundException, ToBigIdException, ObjectAlreadyExistsException, \
-    UnexpectedResultFromDbException, StmtSyntaxErrorException, NotNullViolationException
+    UnexpectedResultFromDbException, StmtSyntaxErrorException, NotNullViolationException, OffsetToBigException, \
+    LimitToBigException
 from src.exceptions.utils import is_raise
 from src.repositories.mappers.base import DataMapper
 from src.repositories.utils import sql_debag
@@ -31,7 +32,14 @@ class BaseRepository:
             query = query.limit(limit=limit)
 
         logging.debug(f"Запрос в базу: {sql_debag(query)}")
-        result = await self.session.execute(query)
+        try:
+            result = await self.session.execute(query)
+        except DBAPIError as exc:
+            is_raise(exc, DataError, OffsetToBigException,
+                     check_message_contains=("value out of int64 range", "OFFSET $2::BIGINT]"))
+            is_raise(exc, DataError, LimitToBigException,
+                     check_message_contains=("value out of int64 range", "LIMIT $1::BIGINT]"))
+            raise exc
         models = result.scalars().all()
 
         return [self.mapper.to_domain(model) for model in models]

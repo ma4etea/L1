@@ -34,9 +34,14 @@ class BookingNotFoundHTTPException(MyAppHTTPException):
     details = "Бронирование не найдено"
 
 
+class FacilitiesNotFoundHTTPException(MyAppHTTPException):
+    def __init__(self, detail: str = "Удобства не найдены"):
+        if detail:
+            self.detail = detail
+    status_code = 404
+    details = "Удобство не найдено"
+
 class FacilityNotFoundHTTPException(MyAppHTTPException):
-    def __init__(self, detail: str):
-        self.detail = detail
     status_code = 404
     details = "Удобство не найдено"
 
@@ -48,6 +53,10 @@ class UserAlreadyExistsHTTPException(MyAppHTTPException):
 class HotelAlreadyExistsHTTPException(MyAppHTTPException):
     status_code = 409
     details = "Отель уже существует"
+
+class FacilityAlreadyExistsHTTPException(MyAppHTTPException):
+    status_code = 409
+    details = "Удобство уже существует"
 #------------------------------------------------------------------------------
 
 class ToBigIdHTTPException(MyAppHTTPException):
@@ -86,3 +95,10 @@ class NotNullViolationHTTPException(MyAppHTTPException):
     status_code = 400
     details = "Значение не может быть null"
 
+class OffsetToBigHTTPException(MyAppHTTPException):
+    status_code = 422
+    details = "Превышено максимальное значение page"
+
+class LimitToBigHTTPException(MyAppHTTPException):
+    status_code = 422
+    details = "Превышено максимальное значение per_page"
