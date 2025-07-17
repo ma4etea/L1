@@ -6,7 +6,7 @@ from sqlalchemy.exc import IntegrityError, NoResultFound, DBAPIError
 from sqlalchemy.ext.asyncio import AsyncSession
 from pydantic import BaseModel as BaseSchema
 from src.database import engine, BaseModel
-from sqlalchemy import select, Insert, delete, update, Executable
+from sqlalchemy import select, Insert, delete, update, Executable, func
 
 from src.exceptions.exeptions import ObjectNotFoundException, ToBigIdException, ObjectAlreadyExistsException, \
     UnexpectedResultFromDbException, StmtSyntaxErrorException, NotNullViolationException, OffsetToBigException, \
@@ -36,9 +36,9 @@ class BaseRepository:
             result = await self.session.execute(query)
         except DBAPIError as exc:
             is_raise(exc, DataError, OffsetToBigException,
-                     check_message_contains=("value out of int64 range", "OFFSET $2::BIGINT]"))
+                     check_message_contains=("value out of int64 range", "LIMIT", "OFFSET"))
             is_raise(exc, DataError, LimitToBigException,
-                     check_message_contains=("value out of int64 range", "LIMIT $1::BIGINT]"))
+                     check_message_contains=("value out of int64 range", "LIMIT"))
             raise exc
         models = result.scalars().all()
 
@@ -118,3 +118,14 @@ class BaseRepository:
         except Exception as exc:
             logging.error(exc_log_string(exc))
             raise exc
+
+    async def get_total(self, *filter_, **filter_by) -> int:
+        query = (
+            select(func.count("*"))
+            .select_from(self.model)
+            .filter(*filter_)
+            .filter_by(**filter_by)
+        )
+        res = await self.session.execute(query)
+        total = res.scalar_one()
+        return total

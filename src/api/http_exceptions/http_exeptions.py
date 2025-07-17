@@ -33,6 +33,11 @@ class BookingNotFoundHTTPException(MyAppHTTPException):
     status_code = 404
     details = "Бронирование не найдено"
 
+class BookingsNotFoundHTTPException(MyAppHTTPException):
+    status_code = 404
+    details = "Бронирования не найдены"
+
+
 
 class FacilitiesNotFoundHTTPException(MyAppHTTPException):
     def __init__(self, detail: str = "Удобства не найдены"):
@@ -40,6 +45,13 @@ class FacilitiesNotFoundHTTPException(MyAppHTTPException):
             self.detail = detail
     status_code = 404
     details = "Удобство не найдено"
+
+class PageNotFoundHTTPException(MyAppHTTPException):
+    def __init__(self, detail: str = "Страница не доступна"):
+        if detail:
+            self.detail = detail
+    status_code = 404
+    details = "Страница не доступна"
 
 class FacilityNotFoundHTTPException(MyAppHTTPException):
     status_code = 404
@@ -102,3 +114,7 @@ class OffsetToBigHTTPException(MyAppHTTPException):
 class LimitToBigHTTPException(MyAppHTTPException):
     status_code = 422
     details = "Превышено максимальное значение per_page"
+
+class InvalidPaginationHTTPException(MyAppHTTPException):
+    status_code = 422
+    details = "Неверные данные пагинации"

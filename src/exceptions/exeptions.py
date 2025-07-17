@@ -25,6 +25,13 @@ class UserNotFoundException(ObjectNotFoundException):
 class BookingNotFoundException(ObjectNotFoundException):
     details = "Бронирование не найдено"
 
+class BookingsNotFoundException(ObjectNotFoundException):
+    details = "Бронирования не найдены"
+
+class PageNotFoundException(ObjectNotFoundException):
+    def __init__(self, details: str):
+        self.details = details
+    details = "Бронирования не найдены"
 
 class FacilityNotFoundException(ObjectNotFoundException):
     def __init__(self, details: str):
@@ -68,6 +75,9 @@ class StmtSyntaxErrorException(MyAppException):
 
 class InvalidCredentialsException(MyAppException):
     details = "Неверные данные авторизации"
+
+class InvalidPaginationException(MyAppException):
+    details = "Неверные данные пагинации"
 
 class NoAvailableRoom(MyAppException):
     details = "Нет доступного номера"

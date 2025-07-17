@@ -1,4 +1,7 @@
+import math
+
 from src.api.dependecy import DepAccess, DepPagination
+from src.exceptions.exeptions import BookingsNotFoundException, PageNotFoundException
 from src.schemas.booking import BookingAdd, Booking, BookingToDB
 from src.services.base import BaseService
 from src.services.room import RoomService
@@ -14,16 +17,22 @@ class BookingService(BaseService):
 
         return booking
 
-    async def get_bookings(self, pag: DepPagination)-> list[Booking]:
-        offset = pag.per_page * pag.page - pag.per_page
-        limit = pag.per_page
+    async def get_bookings(self, page: int, per_page: int)-> list[Booking]:
+        total = await self.db.bookings.get_total()
+        offset, limit = self.check_pagination(page=page, per_page=per_page, check_total=total)
         bookings = await self.db.bookings.get_all(offset=offset, limit=limit)
+        if not bookings:
+            raise BookingsNotFoundException
         return bookings
 
-    async def get_my_booking(self, user_id: int)-> list[Booking]:
-        bookings = await self.db.bookings.get_all(user_id=user_id)
+    async def get_my_bookings(self, user_id: int, page: int, per_page: int)-> list[Booking]:
+        total = await self.db.bookings.get_total(user_id=user_id)
+        offset, limit = self.check_pagination(page=page, per_page=per_page, check_total=total)
+        bookings = await self.db.bookings.get_all(user_id=user_id, offset=offset, limit=limit)
+        if not bookings:
+            raise BookingsNotFoundException
         return bookings
 
-    async def get_my_bookings(self, user_id, pag):
+    async def get_my_bookings_(self, user_id, pag):
         bookings = await self.db.bookings.get_my_bookings(user_id, pag)
         return bookings
