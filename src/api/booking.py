@@ -4,13 +4,14 @@ from typing import Annotated
 from fastapi import APIRouter, Query, Depends
 
 from src.api.dependecy import DepAccess, DepDB, DepPagination, DepDateBooking
-from src.exceptions.exeptions import ObjectNotFoundException, ToBigIdException, NoAvailableRoom, InvalidDateAfterDate, \
+from src.exceptions.exсeptions import ObjectNotFoundException, ToBigIdException, NoAvailableRoom, InvalidDateAfterDate, \
     OffsetToBigException, LimitToBigException, BookingsNotFoundException, PageNotFoundException, \
-    InvalidPaginationException
+    InvalidPaginationException, RoomNotFoundException, HotelNotFoundException
 from src.api.http_exceptions.http_exeptions import RoomNotFoundHTTPException, ToBigIdHTTPException, \
     NoAvailableRoomHTTPException, \
     InvalidDateAfterDateHTTPException, OffsetToBigHTTPException, LimitToBigHTTPException, BookingsNotFoundHTTPException, \
-    PageNotFoundHTTPException, InvalidPaginationHTTPException
+    PageNotFoundHTTPException, InvalidPaginationHTTPException, HotelNotFoundHTTPException, RoomsNotFoundHTTPException, \
+    ObjectNotFoundHTTPException
 from src.schemas.base import DateBooking
 from src.schemas.booking import BookingAdd
 from src.services.booking import BookingService
@@ -53,10 +54,8 @@ async def get_bookings(
 ):
     try:
         bookings = await BookingService(db).get_bookings(page=pag.page, per_page=pag.per_page)
-    except PageNotFoundException as exc:
-        raise PageNotFoundHTTPException(detail=exc.details)
-    except BookingsNotFoundException:
-        raise BookingsNotFoundHTTPException
+    except (PageNotFoundException, BookingsNotFoundException) as exc:
+        raise ObjectNotFoundHTTPException(exc)
     except OffsetToBigException:
         raise OffsetToBigHTTPException
     except LimitToBigException:
@@ -70,10 +69,8 @@ async def get_bookings(
 async def get_my_booking(user_id: DepAccess, db: DepDB, pag: DepPagination, ):
     try:
         bookings = await BookingService(db).get_my_bookings(user_id=user_id, page=pag.page, per_page=pag.per_page)
-    except PageNotFoundException as exc:
-        raise PageNotFoundHTTPException(detail=exc.details)
-    except BookingsNotFoundException:
-        raise BookingsNotFoundHTTPException
+    except (PageNotFoundException, BookingsNotFoundException) as exc:
+        raise ObjectNotFoundHTTPException(exc)
     except OffsetToBigException:
         raise OffsetToBigHTTPException
     except LimitToBigException:
@@ -83,7 +80,6 @@ async def get_my_booking(user_id: DepAccess, db: DepDB, pag: DepPagination, ):
     return {"status": "ok", "data": bookings}
 
 
-# todo нужно отработать это
 @router.get("/available_rooms", description=(
         "Получить список свободных номеров для бронирования на указанные даты. \n"
         "- Можно указать конкретный отель с помощью параметра `hotel_id`, либо получить свободные номера по всем отелям. \n"
@@ -104,9 +100,18 @@ async def get_available_rooms(
 ):
     try:
         rooms_available = await RoomService(db).get_available_rooms(
-            hotel_id=hotel_id, pag=pag, date_from=date_booking.date_from, date_to=date_booking.date_to)
+            hotel_id=hotel_id, page=pag.page, per_page=pag.per_page, date_from=date_booking.date_from, date_to=date_booking.date_to)
     except InvalidDateAfterDate:
         raise InvalidDateAfterDateHTTPException
+    except (PageNotFoundException, BookingsNotFoundException, HotelNotFoundException, RoomNotFoundException) as exc:
+        raise ObjectNotFoundHTTPException(exc)
+    except InvalidPaginationException:
+        raise InvalidPaginationHTTPException
+    except OffsetToBigException:
+        raise OffsetToBigHTTPException
+    except LimitToBigException:
+        raise LimitToBigHTTPException
+
     return {"status": "ok", "data": rooms_available}
 
 

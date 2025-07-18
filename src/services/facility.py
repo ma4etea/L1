@@ -2,8 +2,8 @@ import json
 
 from src.celery_tasks.tasks import task1
 from src.connectors.redis_conn import redis
-from src.exceptions.exeptions import FacilityNotFoundException, ObjectAlreadyExistsException, \
-    FacilityAlreadyExistsException, ObjectNotFoundException
+from src.exceptions.exсeptions import FacilityNotFoundException, ObjectAlreadyExistsException, \
+    FacilityAlreadyExistsException, ObjectNotFoundException, ToBigIdException, FacilityToBigIdException
 from src.schemas.facilities import AddFacility, Facility
 from src.services.base import BaseService
 
@@ -34,11 +34,14 @@ class FacilityService(BaseService):
         return await self.db.facilities.get_all()
 
     async def check_facilities(self, ids:list[int]):
-        facilities: list[Facility] = await self.db.facilities.get_facilities_by_ids(ids)
+        try:
+            facilities: list[Facility] = await self.db.facilities.get_facilities_by_ids(ids)
+        except ToBigIdException:
+            raise FacilityToBigIdException
         ids_from_db = {facility.id for facility in facilities}
         nonexistent_ids = set(ids) - ids_from_db
         if nonexistent_ids:
-            raise FacilityNotFoundException(details=f"Удобства не найдены id:{list(nonexistent_ids)}")
+            raise FacilityNotFoundException(list(nonexistent_ids))
         return facilities
 
     async def update_facility(self, data_facility: AddFacility, facility_id: int) -> Facility:

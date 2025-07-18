@@ -1,12 +1,17 @@
 from fastapi import HTTPException
 
+from src.exceptions.exсeptions import ObjectNotFoundException
+
 
 class MyAppHTTPException(HTTPException):
     status_code = 500
     details = "Ошибка сервера"
 
-    def __init__(self):
-        super().__init__(status_code=self.status_code, detail=self.details)
+    def __init__(self, *, status_code: int = None, detail: str = None):
+        status_code = status_code or self.status_code
+        detail = detail or self.details
+        super().__init__(status_code=status_code, detail=detail)
+
 
 
 #------------------------------------------------------------------------------
@@ -19,6 +24,7 @@ class HotelNotFoundHTTPException(MyAppHTTPException):
 class RoomNotFoundHTTPException(MyAppHTTPException):
     status_code = 404
     details = "Номер не найден"
+
 
 class RoomsNotFoundHTTPException(MyAppHTTPException):
     status_code = 404
@@ -37,6 +43,13 @@ class BookingsNotFoundHTTPException(MyAppHTTPException):
     status_code = 404
     details = "Бронирования не найдены"
 
+
+class ObjectNotFoundHTTPException(MyAppHTTPException):
+    details = "Объект не найден"
+
+    def __init__(self, exc: ObjectNotFoundException = None):
+        detail = exc.details if exc else self.details
+        super().__init__(status_code=404, detail=detail)
 
 
 class FacilitiesNotFoundHTTPException(MyAppHTTPException):
@@ -72,6 +85,9 @@ class FacilityAlreadyExistsHTTPException(MyAppHTTPException):
 #------------------------------------------------------------------------------
 
 class ToBigIdHTTPException(MyAppHTTPException):
+    def __init__(self, detail: str = "ИД слишком большой"):
+        if detail:
+            self.detail = detail
     status_code = 400
     details = "ИД слишком большой"
 

@@ -1,7 +1,7 @@
 import math
 
 from src.api.dependecy import DepAccess, DepPagination
-from src.exceptions.exeptions import BookingsNotFoundException, PageNotFoundException
+from src.exceptions.exсeptions import BookingsNotFoundException, PageNotFoundException
 from src.schemas.booking import BookingAdd, Booking, BookingToDB
 from src.services.base import BaseService
 from src.services.room import RoomService
@@ -19,7 +19,7 @@ class BookingService(BaseService):
 
     async def get_bookings(self, page: int, per_page: int)-> list[Booking]:
         total = await self.db.bookings.get_total()
-        offset, limit = self.check_pagination(page=page, per_page=per_page, check_total=total)
+        offset, limit = self.get_pagination_with_check(page=page, per_page=per_page, check_total=total)
         bookings = await self.db.bookings.get_all(offset=offset, limit=limit)
         if not bookings:
             raise BookingsNotFoundException
@@ -27,7 +27,7 @@ class BookingService(BaseService):
 
     async def get_my_bookings(self, user_id: int, page: int, per_page: int)-> list[Booking]:
         total = await self.db.bookings.get_total(user_id=user_id)
-        offset, limit = self.check_pagination(page=page, per_page=per_page, check_total=total)
+        offset, limit = self.get_pagination_with_check(page=page, per_page=per_page, check_total=total)
         bookings = await self.db.bookings.get_all(user_id=user_id, offset=offset, limit=limit)
         if not bookings:
             raise BookingsNotFoundException

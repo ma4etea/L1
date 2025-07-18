@@ -1,13 +1,15 @@
+import logging
 from datetime import datetime
 from typing import Annotated
 
 from fastapi import APIRouter, Path, Body
 from src.api.dependecy import DepAccess, DepDB
-from src.exceptions.exeptions import ObjectNotFoundException, ToBigIdException, RoomNotFoundException, \
-    HotelNotFoundException, FacilityNotFoundException
+from src.exceptions.exсeptions import ObjectNotFoundException, ToBigIdException, RoomNotFoundException, \
+    HotelNotFoundException, FacilityNotFoundException, FacilityToBigIdException
 from src.api.http_exceptions.http_exeptions import HotelNotFoundHTTPException, RoomNotFoundHTTPException, \
     ToBigIdHTTPException, \
-    FacilityNotFoundHTTPException, RoomsNotFoundHTTPException, FacilitiesNotFoundHTTPException
+    FacilityNotFoundHTTPException, RoomsNotFoundHTTPException, FacilitiesNotFoundHTTPException, \
+    ObjectNotFoundHTTPException
 from src.schemas.facilities import AddRoomsFacilities
 from src.schemas.rooms import AddRoom, AddRoomToDb, EditRoom
 from src.services.room import RoomService
@@ -73,10 +75,8 @@ router = APIRouter(prefix="/hotels", tags=["Номера"])
 async def get_rooms(_: DepAccess, db: DepDB, hotel_id: Annotated[int, Path(ge=1)]):
     try:
         rooms_with = await RoomService(db).get_rooms(hotel_id=hotel_id)
-    except HotelNotFoundException:
-        raise HotelNotFoundHTTPException
-    except RoomNotFoundException:
-        raise RoomsNotFoundHTTPException
+    except (RoomNotFoundException, HotelNotFoundException) as exc:
+        raise ObjectNotFoundHTTPException(exc)
     except ToBigIdException:
         raise ToBigIdHTTPException
     return {
@@ -94,10 +94,8 @@ async def get_room(
 ):
     try:
         room = await RoomService(db).get_room(hotel_id, room_id)
-    except HotelNotFoundException:
-        raise HotelNotFoundHTTPException
-    except RoomNotFoundException:
-        raise RoomNotFoundHTTPException
+    except (RoomNotFoundException, HotelNotFoundException) as exc:
+        raise ObjectNotFoundHTTPException(exc)
     except ToBigIdException:
         raise ToBigIdHTTPException
     return {"status": "OK", "data": room}
@@ -110,12 +108,10 @@ async def create_room(
         hotel_id: int = Path(ge=1)):
     try:
         room_with = await RoomService(db).create_room(hotel_id, room_data)
-    except HotelNotFoundException:
-        raise HotelNotFoundHTTPException
-    except FacilityNotFoundException:
-        raise FacilityNotFoundHTTPException
-    except ToBigIdException:
-        raise ToBigIdHTTPException
+    except (FacilityNotFoundException, HotelNotFoundException) as exc:
+        raise ObjectNotFoundHTTPException(exc)
+    except (FacilityToBigIdException, ToBigIdException) as exc:
+        raise ToBigIdHTTPException(detail=exc.details)
 
     return {
         "status": "OK",
@@ -132,10 +128,8 @@ async def remove_room(
 ):
     try:
         await RoomService(db).remove_room(hotel_id, room_id)
-    except HotelNotFoundException:
-        raise HotelNotFoundHTTPException
-    except RoomNotFoundException:
-        raise RoomNotFoundHTTPException
+    except (RoomNotFoundException, HotelNotFoundException) as exc:
+        raise ObjectNotFoundHTTPException(exc)
     except ToBigIdException:
         raise ToBigIdHTTPException
     return {"status": "OK"}
@@ -151,12 +145,8 @@ async def update_room(
 ):
     try:
         room_with = await RoomService(db).update_room(room_data, hotel_id=hotel_id, room_id=room_id)
-    except HotelNotFoundException:
-        raise HotelNotFoundHTTPException
-    except RoomNotFoundException:
-        raise RoomNotFoundHTTPException
-    except FacilityNotFoundException as exc:
-        raise FacilityNotFoundHTTPException(detail=exc.details)
+    except (RoomNotFoundException, HotelNotFoundException, FacilityNotFoundException) as exc:
+        raise ObjectNotFoundHTTPException(exc)
     except ToBigIdException:
         raise ToBigIdHTTPException
 
@@ -173,12 +163,8 @@ async def edit_room(
 ):
     try:
         room_with = await RoomService(db).edit_room(room_data, hotel_id=hotel_id, room_id=room_id)
-    except HotelNotFoundException:
-        raise HotelNotFoundHTTPException
-    except RoomNotFoundException:
-        raise RoomNotFoundHTTPException
-    except FacilityNotFoundException as exc:
-        raise FacilitiesNotFoundHTTPException(detail=exc.details)
+    except (RoomNotFoundException, HotelNotFoundException, FacilityNotFoundException) as exc:
+        raise ObjectNotFoundHTTPException(exc)
     except ToBigIdException:
         raise ToBigIdHTTPException
     return {"status": "OK", "data": room_with}

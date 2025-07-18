@@ -7,7 +7,7 @@ from sqlalchemy.exc import NoResultFound, DBAPIError, IntegrityError
 from sqlalchemy.orm import selectinload, joinedload
 
 from src.database import engine
-from src.exceptions.exeptions import ObjectNotFoundException, ToBigIdException
+from src.exceptions.exсeptions import ObjectNotFoundException, ToBigIdException
 from src.models.facilities import RoomsFacilitiesORM, FacilitiesOrm
 from src.models.rooms import RoomsOrm
 from src.repositories.base import BaseRepository

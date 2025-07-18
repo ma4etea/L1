@@ -3,10 +3,10 @@ import logging
 from fastapi import APIRouter, Response
 
 from src.api.dependecy import DepAccess, DepDB
-from src.exceptions.exeptions import UserAlreadyExistsException, UserNotFoundException, \
-    InvalidCredentialsException
+from src.exceptions.exсeptions import UserAlreadyExistsException, UserNotFoundException, \
+    InvalidCredentialsException, ObjectNotFoundException
 from src.api.http_exceptions.http_exeptions import UserAlreadyExistsHTTPException, UserNotFoundHTTPException, \
-    InvalidCredentialsHTTPException
+    InvalidCredentialsHTTPException, ObjectNotFoundHTTPException
 from src.schemas.users import UserReg
 from src.services.auth import AuthService
 from src.utils.logger_utils import exc_log_string
@@ -28,8 +28,8 @@ async def register_user(db: DepDB, data: UserReg):
 async def login_user(db: DepDB, data: UserReg, response: Response):
     try:
         access_token = await AuthService(db).login_user(data)
-    except UserNotFoundException:
-        raise UserNotFoundHTTPException
+    except UserNotFoundException as exc:
+        raise ObjectNotFoundHTTPException(exc)
     except InvalidCredentialsException:
         raise InvalidCredentialsHTTPException
     response.set_cookie("access_token", access_token)  # new_case добавление куки

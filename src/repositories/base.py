@@ -6,9 +6,9 @@ from sqlalchemy.exc import IntegrityError, NoResultFound, DBAPIError
 from sqlalchemy.ext.asyncio import AsyncSession
 from pydantic import BaseModel as BaseSchema
 from src.database import engine, BaseModel
-from sqlalchemy import select, Insert, delete, update, Executable, func
+from sqlalchemy import select, Insert, delete, update, Executable, func, Result
 
-from src.exceptions.exeptions import ObjectNotFoundException, ToBigIdException, ObjectAlreadyExistsException, \
+from src.exceptions.exсeptions import ObjectNotFoundException, ToBigIdException, ObjectAlreadyExistsException, \
     UnexpectedResultFromDbException, StmtSyntaxErrorException, NotNullViolationException, OffsetToBigException, \
     LimitToBigException
 from src.exceptions.utils import is_raise
@@ -32,14 +32,7 @@ class BaseRepository:
             query = query.limit(limit=limit)
 
         logging.debug(f"Запрос в базу: {sql_debag(query)}")
-        try:
-            result = await self.session.execute(query)
-        except DBAPIError as exc:
-            is_raise(exc, DataError, OffsetToBigException,
-                     check_message_contains=("value out of int64 range", "LIMIT", "OFFSET"))
-            is_raise(exc, DataError, LimitToBigException,
-                     check_message_contains=("value out of int64 range", "LIMIT"))
-            raise exc
+        result = await self.safe_execute_all(query)
         models = result.scalars().all()
 
         return [self.mapper.to_domain(model) for model in models]
@@ -114,6 +107,24 @@ class BaseRepository:
             is_raise(exc=exc, reason=PostgresSyntaxError, to_raise=StmtSyntaxErrorException)
             is_raise(exc=exc, reason=NotNullViolationError, to_raise=NotNullViolationException)
             logging.error(exc_log_string(exc))
+            raise exc
+        except Exception as exc:
+            logging.error(exc_log_string(exc))
+            raise exc
+
+    async def safe_execute_all(self, stmt: Executable) -> Result:
+        try:
+            result = await self.session.execute(stmt)
+            return result
+        except NoResultFound:
+            raise ObjectNotFoundException
+        except DBAPIError as exc:
+            is_raise(exc, DataError, OffsetToBigException,
+                    check_message_contains=("value out of int64 range", "LIMIT", "OFFSET"))
+            is_raise(exc, DataError, LimitToBigException,
+                    check_message_contains=("value out of int64 range", "LIMIT"))
+            is_raise(exc, DataError, ToBigIdException,
+                    check_message_contains=("value out of int32 range",))
             raise exc
         except Exception as exc:
             logging.error(exc_log_string(exc))

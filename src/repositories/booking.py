@@ -4,7 +4,7 @@ from sqlalchemy import select, func
 from sqlalchemy.exc import DBAPIError
 from sqlalchemy.orm import selectinload
 
-from src.exceptions.exeptions import NoAvailableRoom
+from src.exceptions.exсeptions import NoAvailableRoom
 from src.models.bookings import BookingsOrm
 from src.models.rooms import RoomsOrm
 from src.repositories.base import BaseRepository
@@ -77,7 +77,7 @@ class BookingsRepository(BaseRepository):
         )
         logging.debug(f"Запрос в базу: {sql_debag(query)}")
 
-        result = await self.session.execute(query)
+        result = await self.safe_execute_all(query)
         rows = result.mappings().all()
         return [dict(row) for row in rows]
 

@@ -3,7 +3,7 @@ from datetime import date
 from fastapi import Query, Body, Path, APIRouter
 
 from src.api.dependecy import DepPagination, DepDB
-from src.exceptions.exeptions import ToBigIdException, \
+from src.exceptions.exсeptions import ToBigIdException, \
     HotelNotFoundException, InvalidDateAfterDate, HotelAlreadyExistsException, StmtSyntaxErrorException, \
     NotNullViolationException
 from src.api.http_exceptions.http_exeptions import HotelNotFoundHTTPException, ToBigIdHTTPException, \

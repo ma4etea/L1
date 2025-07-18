@@ -3,7 +3,7 @@ import logging
 from sqlalchemy import select
 from sqlalchemy.exc import NoResultFound
 
-from src.exceptions.exeptions import ObjectNotFoundException
+from src.exceptions.exсeptions import ObjectNotFoundException
 from src.models.users import UsersOrm
 from src.repositories.base import BaseRepository
 from src.repositories.mappers.mappers import AuthDataMapper

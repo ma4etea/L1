@@ -4,7 +4,7 @@ from datetime import date
 from fastapi import HTTPException
 
 from src.api.dependecy import DepPagination
-from src.exceptions.exeptions import ObjectNotFoundException, RoomNotFoundException, FacilityNotFoundException
+from src.exceptions.exсeptions import ObjectNotFoundException, RoomNotFoundException, FacilityNotFoundException
 from src.exceptions.utils import check_data_from_after_date_to_http_exc
 from src.schemas.facilities import AddRoomsFacilities
 from src.schemas.rooms import Room, RoomWith, AddRoomToDb, AddRoom, EditRoom
@@ -18,14 +18,18 @@ class RoomService(BaseService):
         try:
             return await self.db.rooms.get_one(id=room_id)
         except ObjectNotFoundException as exc:
-            raise RoomNotFoundException from exc
+            raise RoomNotFoundException(room_id) from exc
 
-    async def get_available_rooms(self, hotel_id: int, pag: DepPagination, date_from: date, date_to: date):
-        offset = pag.per_page * pag.page - pag.per_page
-        limit = pag.per_page
+    async def get_available_rooms(self, hotel_id: int | None, page: int, per_page: int, date_from: date, date_to: date):
+        if hotel_id:
+            await HotelService(self.db).check_hotel(hotel_id)
+
+        offset, limit = self.get_pagination_with_check(page, per_page)
         rooms_available = await self.db.bookings.get_available_rooms(
             hotel_id=hotel_id, offset=offset, limit=limit, date_from=date_from, date_to=date_to
         )
+        if not rooms_available:
+            raise RoomNotFoundException
         room_ids = [room["id"] for room in rooms_available]
         rooms_facilities = await self.db.rooms_facilities.get_facilities_with_by_rooms_ids(room_ids)
 

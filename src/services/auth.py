@@ -6,7 +6,7 @@ from passlib.context import CryptContext
 import jwt
 
 from src.config import settings
-from src.exceptions.exeptions import ObjectAlreadyExistsException, UserAlreadyExistsException, ObjectNotFoundException, \
+from src.exceptions.exсeptions import ObjectAlreadyExistsException, UserAlreadyExistsException, ObjectNotFoundException, \
     UserNotFoundException, InvalidCredentialsException
 from src.schemas.users import UserReg, UserAdd, User
 from src.services.base import BaseService
@@ -61,7 +61,7 @@ class AuthService(BaseService):
         try:
             user = await self.db.auth.get_user_with_hashed_password(email=data.email)
         except ObjectNotFoundException as exc:
-            raise UserNotFoundException from exc
+            raise UserNotFoundException(object_id=str(data.email)) from exc
         if not self.verify_password(
                 plain_password=data.password, hashed_password=user.hashed_password
         ):  # new_case проверка пароля

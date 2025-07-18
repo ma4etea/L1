@@ -2,7 +2,7 @@ import logging
 from datetime import date
 
 from src.api.dependecy import DepPagination
-from src.exceptions.exeptions import ObjectNotFoundException, HotelNotFoundException, HotelAlreadyExistsException, \
+from src.exceptions.exсeptions import ObjectNotFoundException, HotelNotFoundException, HotelAlreadyExistsException, \
     ObjectAlreadyExistsException
 from src.exceptions.utils import check_data_from_after_date_to_http_exc
 from src.schemas.hotels import HotelAdd, HotelPatch, Hotel
@@ -51,7 +51,7 @@ class HotelService(BaseService):
             return await self.db.hotels.get_one(id=hotel_id)
         except ObjectNotFoundException as exc:
             logging.warning(f"Отель не найден: {type(exc).__name__}")
-            raise HotelNotFoundException from exc
+            raise HotelNotFoundException(hotel_id) from exc
 
 
     async def edit_hotel(self, hotel_id: int, hotel_data: HotelPatch | HotelAdd, exclude_unset=False) -> Hotel:

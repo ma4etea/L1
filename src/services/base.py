@@ -1,7 +1,7 @@
 import logging
 import math
 
-from src.exceptions.exeptions import PageNotFoundException, InvalidPaginationException
+from src.exceptions.exсeptions import PageNotFoundException, InvalidPaginationException
 from src.utils.db_manager import DBManager
 
 
@@ -12,7 +12,7 @@ class BaseService:
     def __init__(self, db: DBManager | None = None):
         self.db = db
 
-    def check_pagination(self, page: int, per_page: int, check_total: int = None) -> tuple[int, int]:
+    def get_pagination_with_check(self, page: int, per_page: int, check_total: int = None) -> tuple[int, int]:
         """
         Проверяет параметры пагинации и возвращает offset и limit.
 
@@ -40,7 +40,7 @@ class BaseService:
         if per_page < 1 or page < 1:
             logging.warning(f"Неверные данные пагинации{page=}{per_page=}")
             raise InvalidPaginationException
-        if check_total and offset >= check_total:
+        if not check_total is None and offset >= check_total:
             page = max(1, math.ceil(check_total / per_page))
             raise PageNotFoundException(details=f"Максимум доступна {page=}")
 

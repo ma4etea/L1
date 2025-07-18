@@ -3,7 +3,7 @@ from fastapi import APIRouter, Body, Path
 from fastapi_cache.decorator import cache
 from src.api.dependecy import DepAccess, DepDB
 from src.api.http_exceptions.http_exeptions import FacilityAlreadyExistsHTTPException, FacilityNotFoundHTTPException
-from src.exceptions.exeptions import FacilityAlreadyExistsException
+from src.exceptions.exсeptions import FacilityAlreadyExistsException
 from src.schemas.facilities import AddFacility
 from src.services.facility import FacilityService
 
