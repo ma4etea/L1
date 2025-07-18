@@ -1,4 +1,7 @@
+from collections import defaultdict
 from datetime import date
+
+from fastapi import HTTPException
 
 from src.api.dependecy import DepPagination
 from src.exceptions.exeptions import ObjectNotFoundException, RoomNotFoundException, FacilityNotFoundException
@@ -18,12 +21,26 @@ class RoomService(BaseService):
             raise RoomNotFoundException from exc
 
     async def get_available_rooms(self, hotel_id: int, pag: DepPagination, date_from: date, date_to: date):
-        # check_data_from_after_date_to_http_exc(date_from=date_from, date_to=date_to)
         offset = pag.per_page * pag.page - pag.per_page
         limit = pag.per_page
         rooms_available = await self.db.bookings.get_available_rooms(
             hotel_id=hotel_id, offset=offset, limit=limit, date_from=date_from, date_to=date_to
         )
+        room_ids = [room["id"] for room in rooms_available]
+        rooms_facilities = await self.db.rooms_facilities.get_facilities_with_by_rooms_ids(room_ids)
+
+        # группируем facilities по room_id
+        facilities_map = defaultdict(list)
+        for facility in rooms_facilities:
+            facilities_map[facility["room_id"]].append({
+                "id": facility["id"],
+                "title": facility["title"]
+            })
+
+        # назначаем каждому room его facilities
+        for room in rooms_available:
+            room["facilities"] = facilities_map.get(room["id"], [])
+
         return rooms_available
 
     async def get_available_rooms_shymeyko(

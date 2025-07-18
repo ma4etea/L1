@@ -1,8 +1,9 @@
 from datetime import date
+from typing import Annotated
 
 from fastapi import APIRouter, Query, Depends
 
-from src.api.dependecy import DepAccess, DepDB, DepPagination, DepDateBooking, DateBooking
+from src.api.dependecy import DepAccess, DepDB, DepPagination, DepDateBooking
 from src.exceptions.exeptions import ObjectNotFoundException, ToBigIdException, NoAvailableRoom, InvalidDateAfterDate, \
     OffsetToBigException, LimitToBigException, BookingsNotFoundException, PageNotFoundException, \
     InvalidPaginationException
@@ -10,6 +11,7 @@ from src.api.http_exceptions.http_exeptions import RoomNotFoundHTTPException, To
     NoAvailableRoomHTTPException, \
     InvalidDateAfterDateHTTPException, OffsetToBigHTTPException, LimitToBigHTTPException, BookingsNotFoundHTTPException, \
     PageNotFoundHTTPException, InvalidPaginationHTTPException
+from src.schemas.base import DateBooking
 from src.schemas.booking import BookingAdd
 from src.services.booking import BookingService
 from src.services.room import RoomService
@@ -83,11 +85,14 @@ async def get_my_booking(user_id: DepAccess, db: DepDB, pag: DepPagination, ):
 
 # todo нужно отработать это
 @router.get("/available_rooms", description=(
-        "- Получить список свободных номеров для бронирования на указанные даты. \n"
+        "Получить список свободных номеров для бронирования на указанные даты. \n"
         "- Можно указать конкретный отель с помощью параметра `hotel_id`, либо получить свободные номера по всем отелям. \n"
         "- Даты заезда (`date_from`) не раньше сегодняшнего дня. \n"
         "- Дата выезда (`date_to`) позже даты заезда. \n"
-        "- Также поддерживается пагинация с параметрами `page` и `per_page`.\n"
+        "- Также поддерживается пагинация с параметрами `page` и `per_page`.\n\n"
+        "Примеры даты:\n"
+        "- `date_from` 2025-07-23\n"
+        "- `date_to` 2025-07-25\n"
 )
 
             )

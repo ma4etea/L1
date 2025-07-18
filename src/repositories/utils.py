@@ -9,11 +9,11 @@ from src.models.rooms import RoomsOrm
 
 
 def get_available_rooms_ids(
-    offset: int,
-    limit: int,
-    date_from: date,
-    date_to: date,
-    hotel_id: int = None,
+        offset: int,
+        limit: int,
+        date_from: date,
+        date_to: date,
+        hotel_id: int = None,
 ):
     """
     with rooms_booked_count as (
@@ -73,42 +73,57 @@ def get_available_rooms_ids(
 
 
 def check_rooms_available(
-    date_from: date,
-    date_to: date,
-    room_id: int,
+        date_from: date,
+        date_to: date,
+        room_id: int,
 ):
     """
-    stmt запрос
-    Проверяет есть ли доступные комнаты для бронирования по room_id
-    :param date_from:
-    :param date_to:
-    :param room_id:
-    :return bool | None:
-    """
+    Проверяет, есть ли хотя бы одна доступная комната для бронирования по заданному `room_id`
+    в интервале дат от `date_from` до `date_to` (включительно).
 
-    """
-    WITH rooms_booked_count AS (
-    SELECT b.room_id AS room_id, COUNT(*) AS booked
-    FROM bookings b
-    WHERE b.date_from <= '2025-07-06' AND b.date_to >= '2025-07-05'
-      AND b.room_id = 5
-    GROUP BY b.room_id
-    )
+    Метод использует пересечение дат, то есть комната считается занятой, если:
+        booking.date_from <= date_to AND booking.date_to >= date_from
+
+    Алгоритм:
+    1. Считает, сколько бронирований уже существует по данному `room_id`, пересекающихся с заданным диапазоном.
+       (CTE: rooms_booked_count)
+    2. Выполняет LEFT JOIN с таблицей `rooms`, чтобы получить общее количество комнат.
+    3. Вычисляет доступность: `quantity - booked > 0`
+       (то есть осталась хотя бы одна свободная комната).
+
+    Параметры:
+    :param date_from: Дата начала желаемого бронирования (включительно)
+    :param date_to: Дата окончания желаемого бронирования (включительно)
+    :param room_id: ID проверяемой комнаты
+
+    Возвращает:
+    SQLAlchemy Query, возвращающий булево значение `is_available`:
+        - True, если хотя бы одна комната доступна
+        - False, если все заняты
+        - None, если комната не найдена
+
+    Пример SQL-запроса, который будет сгенерирован:
+        WITH rooms_booked_count AS (
+            SELECT b.room_id, COUNT(*) AS booked
+            FROM bookings b
+            WHERE b.date_from <= :date_to AND b.date_to >= :date_from
+              AND b.room_id = :room_id
+            GROUP BY b.room_id
+        )
+        SELECT (r.quantity - COALESCE(rbc.booked, 0)) > 0 AS is_available
+        FROM rooms r
+        LEFT JOIN rooms_booked_count rbc ON r.id = rbc.room_id
+        WHERE r.id = :room_id
     """
     b = BookingsOrm
     rooms_booked_count = (
         select(b.room_id, func.count("*").label("booked"))
         .select_from(b)
-        .filter(b.date_from <= date_from, b.date_to >= date_to, b.room_id == room_id)
+        .filter(b.date_from <= date_to, b.date_to >= date_from, b.room_id == room_id)
         .group_by(b.room_id)
         .cte("rooms_booked_count")
     )
-    """
-        SELECT (r.quantity - COALESCE(rbc.booked, 0)) > 0 AS is_available
-        FROM rooms r
-        LEFT JOIN rooms_booked_count rbc ON r.id = rbc.room_id
-        WHERE r.id = 5;
-    """
+
     rbc = rooms_booked_count
     r = RoomsOrm
     query = (
@@ -117,9 +132,9 @@ def check_rooms_available(
         .outerjoin(rbc, r.id == rbc.c.room_id)
         .filter(r.id == room_id)
     )
-    logging.debug(f"Запрос в базу: {sql_debag(query)}")
-
+    logging.debug(f"Запрос в базу: \n{sql_debag(query)}")
     return query
+
 
 def sql_debag(stmt) -> str:
     return stmt.compile(bind=engine, compile_kwargs={"literal_binds": True})

@@ -2,6 +2,7 @@ import logging
 from datetime import date
 from sqlalchemy import select, func
 from sqlalchemy.exc import DBAPIError
+from sqlalchemy.orm import selectinload
 
 from src.exceptions.exeptions import NoAvailableRoom
 from src.models.bookings import BookingsOrm
@@ -23,7 +24,7 @@ class BookingsRepository(BaseRepository):
             date_from: date,
             date_to: date,
             hotel_id: int = None,
-    ):
+    ) -> list[dict]:
         """
         with rooms_booked_count as (
             select room_id, COUNT(*) as booked
@@ -35,7 +36,7 @@ class BookingsRepository(BaseRepository):
         rooms_booked_count = (
             select(BookingsOrm.room_id, func.count("*").label("booked"))
             .select_from(BookingsOrm)
-            .filter(BookingsOrm.date_from <= date_from, BookingsOrm.date_to >= date_to)
+            .filter(BookingsOrm.date_from <= date_to, BookingsOrm.date_to >= date_from)
             .group_by(BookingsOrm.room_id)
             .cte("rooms_booked_count")
         )
@@ -74,12 +75,11 @@ class BookingsRepository(BaseRepository):
             .limit(limit)
             .order_by("id")
         )
-
         logging.debug(f"Запрос в базу: {sql_debag(query)}")
 
         result = await self.session.execute(query)
-        rows = result.all()
-        return [RoomsAvailable(**(row._mapping)) for row in rows]
+        rows = result.mappings().all()
+        return [dict(row) for row in rows]
 
     async def get_my_bookings(self, user_id: int, pag):
         """
@@ -152,6 +152,6 @@ class BookingsRepository(BaseRepository):
             raise exc
         if not is_available:
             raise NoAvailableRoom
-        model = await self.add(data)
-        return model
+        schema = await self.add(data)
+        return schema
 

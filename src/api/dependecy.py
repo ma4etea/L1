@@ -22,14 +22,14 @@ class Pagination(BaseModel):
 
 DepPagination = Annotated[Pagination, Depends()]
 
-class DateBooking(DateFromTodayOrLaterMixin, DateRangeValidatorMixin, BaseModel):
+class DateBooking1(DateFromTodayOrLaterMixin, DateRangeValidatorMixin, BaseModel):
     date_from: Annotated[date, Query(description="Дата заезда, не раньше сегодняшнего дня")]
     date_to: Annotated[date, Query(description="Дата выезда, позже даты заезда ")]
 
     class Config:
         title = "Период бронирования"
 
-DepDateBooking = Annotated[DateBooking, Depends()]
+DepDateBooking = Annotated[DateBooking1, Depends()]
 
 def get_access_token(request: Request) -> str:
     cookies = request.cookies  # new_case получить куки

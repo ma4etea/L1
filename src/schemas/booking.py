@@ -3,6 +3,7 @@ from typing import Annotated
 from pydantic import BaseModel, Field
 from datetime import date
 
+from src.schemas.facilities import Facility
 from src.schemas.mixin.mixin import DateRangeValidatorMixin, DateFromTodayOrLaterMixin
 
 
@@ -32,3 +33,4 @@ class RoomsAvailable(BaseModel):
     price: int
     room_id: int
     available: int
+    facilities: list[Facility] = []
