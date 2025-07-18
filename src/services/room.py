@@ -18,7 +18,7 @@ class RoomService(BaseService):
             raise RoomNotFoundException from exc
 
     async def get_available_rooms(self, hotel_id: int, pag: DepPagination, date_from: date, date_to: date):
-        check_data_from_after_date_to_http_exc(date_from=date_from, date_to=date_to)
+        # check_data_from_after_date_to_http_exc(date_from=date_from, date_to=date_to)
         offset = pag.per_page * pag.page - pag.per_page
         limit = pag.per_page
         rooms_available = await self.db.bookings.get_available_rooms(

@@ -1,8 +1,8 @@
 from datetime import date
 
-from fastapi import APIRouter, Query
+from fastapi import APIRouter, Query, Depends
 
-from src.api.dependecy import DepAccess, DepDB, DepPagination
+from src.api.dependecy import DepAccess, DepDB, DepPagination, DepDateBooking, DateBooking
 from src.exceptions.exeptions import ObjectNotFoundException, ToBigIdException, NoAvailableRoom, InvalidDateAfterDate, \
     OffsetToBigException, LimitToBigException, BookingsNotFoundException, PageNotFoundException, \
     InvalidPaginationException
@@ -81,17 +81,25 @@ async def get_my_booking(user_id: DepAccess, db: DepDB, pag: DepPagination, ):
     return {"status": "ok", "data": bookings}
 
 
-@router.get("/available_rooms")
+# todo нужно отработать это
+@router.get("/available_rooms", description=(
+        "- Получить список свободных номеров для бронирования на указанные даты. \n"
+        "- Можно указать конкретный отель с помощью параметра `hotel_id`, либо получить свободные номера по всем отелям. \n"
+        "- Даты заезда (`date_from`) не раньше сегодняшнего дня. \n"
+        "- Дата выезда (`date_to`) позже даты заезда. \n"
+        "- Также поддерживается пагинация с параметрами `page` и `per_page`.\n"
+)
+
+            )
 async def get_available_rooms(
+        date_booking: DepDateBooking,
         db: DepDB,
         pag: DepPagination,
-        date_from: date,
-        date_to: date,
-        hotel_id: int = Query(None),
+        hotel_id: int = Query(None, description="ID отеля (опционально, чтобы фильтровать номера по отелю)"),
 ):
     try:
         rooms_available = await RoomService(db).get_available_rooms(
-            hotel_id=hotel_id, pag=pag, date_from=date_from, date_to=date_to)
+            hotel_id=hotel_id, pag=pag, date_from=date_booking.date_from, date_to=date_booking.date_to)
     except InvalidDateAfterDate:
         raise InvalidDateAfterDateHTTPException
     return {"status": "ok", "data": rooms_available}
