@@ -1,6 +1,6 @@
 from fastapi import HTTPException
 
-from src.exceptions.exсeptions import ObjectNotFoundException
+from src.exceptions.exсeptions import ObjectNotFoundException, ObjectHaveForeignKeyException
 
 
 class MyAppHTTPException(HTTPException):
@@ -134,3 +134,12 @@ class LimitToBigHTTPException(MyAppHTTPException):
 class InvalidPaginationHTTPException(MyAppHTTPException):
     status_code = 422
     details = "Неверные данные пагинации"
+
+
+class ObjectHaveForeignKeyHTTPException(MyAppHTTPException):
+    details = "Объект имеет внешний ключ"
+
+    def __init__(self, exc: ObjectHaveForeignKeyException = None):
+        detail = exc.details if exc else self.details
+        super().__init__(status_code=409, detail=detail)
+

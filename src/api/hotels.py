@@ -2,13 +2,13 @@ from datetime import date
 
 from fastapi import Query, Body, Path, APIRouter
 
-from src.api.dependecy import DepPagination, DepDB
+from src.api.dependecy import DepPagination, DepDB, DepDateAvailable
 from src.exceptions.exсeptions import ToBigIdException, \
     HotelNotFoundException, InvalidDateAfterDate, HotelAlreadyExistsException, StmtSyntaxErrorException, \
-    NotNullViolationException
+    NotNullViolationException, OffsetToBigException
 from src.api.http_exceptions.http_exeptions import HotelNotFoundHTTPException, ToBigIdHTTPException, \
     InvalidDateAfterDateHTTPException, HotelAlreadyExistsHTTPException, StmtSyntaxErrorHTTPException, \
-    NotNullViolationHTTPException
+    NotNullViolationHTTPException, ObjectNotFoundHTTPException, OffsetToBigHTTPException
 from src.schemas.hotels import HotelPatch, HotelAdd
 from src.services.hotels import HotelService
 
@@ -50,29 +50,36 @@ openapi_hotel_examples = {
     },
 }
 
-
 router = APIRouter(prefix="/hotels", tags=["Отели"])
 
 
-@router.get("")
+@router.get("", description=(
+        "- Возвращает список отелей, в которых есть доступные номера в указанный период.\n"
+        "- Пример дат: `date_from=2025-07-20`, `date_to=2025-07-27`.\n"
+        "- Поддерживается фильтрация по названию (`title`) и локации (`location`).\n"
+        "- Результат разбивается на страницы с использованием пагинации (`page`, `per_page`).\n"
+        "- Если отелей не найдено — возвращается 404."
+), )
 async def get_available_hotels(
         db: DepDB,
-        date_from: date,
-        date_to: date,
+        date_available_hotels: DepDateAvailable,
         pag: DepPagination,
         title: str | None = Query(None, description="Название отеля"),
         location: str | None = Query(None, description="Локация"),
 ):
     try:
         hotels = await HotelService(db).get_available_hotels(
-            date_from,
-            date_to,
-            pag,
+            date_available_hotels.date_from,
+            date_available_hotels.date_to,
+            pag.page,
+            pag.per_page,
             title,
             location,
         )
-    except InvalidDateAfterDate:
-        raise InvalidDateAfterDateHTTPException
+    except HotelNotFoundException as exc:
+        raise ObjectNotFoundHTTPException(exc)
+    except OffsetToBigException:
+        raise OffsetToBigHTTPException
 
     return hotels
 

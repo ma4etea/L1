@@ -9,10 +9,10 @@ from src.models.rooms import RoomsOrm
 
 
 def get_available_rooms_ids(
-        offset: int,
-        limit: int,
         date_from: date,
         date_to: date,
+        offset: int | None = None,
+        limit: int | None = None,
         hotel_id: int = None,
 ):
     """
@@ -26,7 +26,7 @@ def get_available_rooms_ids(
     rooms_booked_count = (
         select(BookingsOrm.room_id, func.count("*").label("booked"))
         .select_from(BookingsOrm)
-        .filter(BookingsOrm.date_from <= date_from, BookingsOrm.date_to >= date_to)
+        .filter(BookingsOrm.date_from <= date_to, BookingsOrm.date_to >= date_from)
         .group_by(BookingsOrm.room_id)
         .cte("rooms_booked_count")
     )

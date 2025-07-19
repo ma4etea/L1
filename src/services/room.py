@@ -4,7 +4,8 @@ from datetime import date
 from fastapi import HTTPException
 
 from src.api.dependecy import DepPagination
-from src.exceptions.exсeptions import ObjectNotFoundException, RoomNotFoundException, FacilityNotFoundException
+from src.exceptions.exсeptions import ObjectNotFoundException, RoomNotFoundException, FacilityNotFoundException, \
+    ObjectHaveForeignKeyException, RoomHaveBookingException, RoomMissingToHotelException
 from src.exceptions.utils import check_data_from_after_date_to_http_exc
 from src.schemas.facilities import AddRoomsFacilities
 from src.schemas.rooms import Room, RoomWith, AddRoomToDb, AddRoom, EditRoom
@@ -80,7 +81,12 @@ class RoomService(BaseService):
     async def remove_room(self, hotel_id:int, room_id:int) -> None:
         await HotelService(self.db).check_hotel(hotel_id=hotel_id)
         await self.check_room(room_id=room_id)
-        await self.db.rooms.delete(hotel_id=hotel_id, id=room_id)
+        try:
+            await self.db.rooms.delete(hotel_id=hotel_id, id=room_id)
+        except ObjectHaveForeignKeyException:
+            raise RoomHaveBookingException
+        except ObjectNotFoundException:
+            raise RoomMissingToHotelException
         await self.db.commit()
 
     async def create_room(self, hotel_id: int, room_data: AddRoom) -> RoomWith:
@@ -104,7 +110,10 @@ class RoomService(BaseService):
         await HotelService(self.db).check_hotel(hotel_id)
         await self.check_room(room_id)
         await FacilityService(self.db).check_facilities(room_data.facilities_ids)
-        await self.db.rooms.edit_room(room_data, hotel_id=hotel_id, room_id=room_id)
+        try:
+            await self.db.rooms.edit_room(room_data, hotel_id=hotel_id, room_id=room_id)
+        except ObjectNotFoundException:
+            raise RoomMissingToHotelException
         room_with: RoomWith = await self.db.rooms.get_room_with(id=room_id)
         await self.db.commit()
         return room_with
@@ -114,9 +123,12 @@ class RoomService(BaseService):
         await self.check_room(room_id)
         if room_data.facilities_ids:
             await FacilityService(self.db).check_facilities(room_data.facilities_ids)
-        await self.db.rooms.edit_room(
-            room_data, exclude_unset=True, hotel_id=hotel_id, room_id=room_id
-        )
+        try:
+            await self.db.rooms.edit_room(
+                room_data, exclude_unset=True, hotel_id=hotel_id, room_id=room_id
+            )
+        except ObjectNotFoundException:
+            raise RoomMissingToHotelException
         room_with: RoomWith = await self.db.rooms.get_room_with(id=room_id)
         await self.db.commit()
         return room_with

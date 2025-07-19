@@ -37,11 +37,11 @@ class RoomsRepository(BaseRepository):
         data_dict = data.model_dump(exclude_unset=exclude_unset, exclude={"facilities_ids"})
 
         if data_dict:
-            stmt = (update(self.model).filter_by(id=room_id).values(**data_dict)).returning(
+            stmt = (update(self.model).filter_by(id=room_id, **filter_by).values(**data_dict)).returning(
                 self.model
             )
         else:
-            stmt = select(self.model).filter_by(id=room_id)
+            stmt = select(self.model).filter_by(id=room_id, **filter_by)
 
         if data.facilities_ids is not None:
             fac_ids = data.facilities_ids
@@ -139,9 +139,9 @@ class RoomsRepository(BaseRepository):
         """IntegrityError, DBAPIError"""
         try:
             result = await self.session.execute(stmt)
-            room_orm = result.scalar()
+            room_orm = result.scalar_one()
             return self.mapper.to_domain(room_orm)
-        except IntegrityError:
+        except  NoResultFound:
             raise ObjectNotFoundException
         except DBAPIError:
             raise ToBigIdException

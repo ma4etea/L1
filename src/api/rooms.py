@@ -5,11 +5,12 @@ from typing import Annotated
 from fastapi import APIRouter, Path, Body
 from src.api.dependecy import DepAccess, DepDB
 from src.exceptions.exсeptions import ObjectNotFoundException, ToBigIdException, RoomNotFoundException, \
-    HotelNotFoundException, FacilityNotFoundException, FacilityToBigIdException
+    HotelNotFoundException, FacilityNotFoundException, FacilityToBigIdException, RoomHaveBookingException, \
+    RoomMissingToHotelException
 from src.api.http_exceptions.http_exeptions import HotelNotFoundHTTPException, RoomNotFoundHTTPException, \
     ToBigIdHTTPException, \
     FacilityNotFoundHTTPException, RoomsNotFoundHTTPException, FacilitiesNotFoundHTTPException, \
-    ObjectNotFoundHTTPException
+    ObjectNotFoundHTTPException, ObjectHaveForeignKeyHTTPException
 from src.schemas.facilities import AddRoomsFacilities
 from src.schemas.rooms import AddRoom, AddRoomToDb, EditRoom
 from src.services.room import RoomService
@@ -66,7 +67,6 @@ openapi_room_examples = {
         },
     },
 }
-
 
 router = APIRouter(prefix="/hotels", tags=["Номера"])
 
@@ -128,8 +128,10 @@ async def remove_room(
 ):
     try:
         await RoomService(db).remove_room(hotel_id, room_id)
-    except (RoomNotFoundException, HotelNotFoundException) as exc:
+    except (RoomNotFoundException, HotelNotFoundException, RoomMissingToHotelException) as exc:
         raise ObjectNotFoundHTTPException(exc)
+    except RoomHaveBookingException as exc:
+        raise ObjectHaveForeignKeyHTTPException(exc)
     except ToBigIdException:
         raise ToBigIdHTTPException
     return {"status": "OK"}
@@ -145,7 +147,8 @@ async def update_room(
 ):
     try:
         room_with = await RoomService(db).update_room(room_data, hotel_id=hotel_id, room_id=room_id)
-    except (RoomNotFoundException, HotelNotFoundException, FacilityNotFoundException) as exc:
+    except (RoomNotFoundException, HotelNotFoundException, FacilityNotFoundException,
+            RoomMissingToHotelException) as exc:
         raise ObjectNotFoundHTTPException(exc)
     except ToBigIdException:
         raise ToBigIdHTTPException
@@ -153,7 +156,13 @@ async def update_room(
     return {"status": "OK", "data": room_with}
 
 
-@router.patch("/{hotel_id}/rooms/{room_id}")
+@router.patch("/{hotel_id}/rooms/{room_id}", description=(
+        "- Изменяет параметры комнаты в указанном отеле.\n"
+        "- Обновление происходит частично: можно передать одно или несколько полей.\n"
+        "- Если не передано ни одного поля — вернётся ошибка 422.\n"
+        "- Если отель, комната или удобства не найдены, также будет ошибка.\n"
+        "- Идентификаторы `hotel_id` и `room_id` должны быть положительными числами (≥1)."
+), )
 async def edit_room(
         _: DepAccess,
         db: DepDB,
@@ -163,7 +172,8 @@ async def edit_room(
 ):
     try:
         room_with = await RoomService(db).edit_room(room_data, hotel_id=hotel_id, room_id=room_id)
-    except (RoomNotFoundException, HotelNotFoundException, FacilityNotFoundException) as exc:
+    except (RoomNotFoundException, HotelNotFoundException, FacilityNotFoundException,
+            RoomMissingToHotelException) as exc:
         raise ObjectNotFoundHTTPException(exc)
     except ToBigIdException:
         raise ToBigIdHTTPException

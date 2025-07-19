@@ -43,8 +43,10 @@
 #         super().__init__(details, *args)
 
 class MyAppException(Exception):
-    def __init__(self, details: str = "Неизвестная ошибка"):
-        self.details = details
+    details = "Неизвестная ошибка"
+    def __init__(self, details: str | None = None):
+        if details:
+            self.details = details
         super().__init__(details)
 
     def __str__(self):
@@ -155,3 +157,30 @@ class InvalidDateAfterDate(MyAppException):
 
 class NotNullViolationException(MyAppException):
     details = "Значение в db не может быть null"
+
+
+class ObjectHaveForeignKeyException(MyAppException):
+    details: str = "Объект имеет внешний ключ"
+
+    def __init__(self, object_id: int | str | list = None):
+        msg = f"{self.details}"
+        if object_id is not None:
+            msg += f" (id: {object_id})"
+        super().__init__(msg)
+
+class RoomHaveBookingException(ObjectHaveForeignKeyException):
+    details = "Комната имеет бронирование"
+
+class ObjectInvalidForeignKeyException(MyAppException):
+    details: str = "Объекты не связаны внешними ключами"
+
+    def __init__(self, object_ids: list[int | str] = None, objects: list[str] = None):
+        msg = f"{self.details}"
+        if objects:
+            msg += f" ({objects}), "
+        if object_ids is not None:
+            msg += f" (ids: {object_ids})"
+        super().__init__(msg)
+
+class RoomMissingToHotelException(ObjectInvalidForeignKeyException):
+    details = "Номер отсутствует в отеле"

@@ -1,7 +1,7 @@
 import logging
 import math
 
-from src.exceptions.exсeptions import PageNotFoundException, InvalidPaginationException
+from src.exceptions.exсeptions import PageNotFoundException, InvalidPaginationException, ObjectNotFoundException
 from src.utils.db_manager import DBManager
 
 
@@ -41,6 +41,8 @@ class BaseService:
             logging.warning(f"Неверные данные пагинации{page=}{per_page=}")
             raise InvalidPaginationException
         if not check_total is None and offset >= check_total:
+            if check_total <=0:
+                raise ObjectNotFoundException
             page = max(1, math.ceil(check_total / per_page))
             raise PageNotFoundException(details=f"Максимум доступна {page=}")
 

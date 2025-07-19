@@ -30,6 +30,7 @@ class DateBooking1(DateFromTodayOrLaterMixin, DateRangeValidatorMixin, BaseModel
         title = "Период бронирования"
 
 DepDateBooking = Annotated[DateBooking1, Depends()]
+DepDateAvailable = Annotated[DateBooking1, Depends()]
 
 def get_access_token(request: Request) -> str:
     cookies = request.cookies  # new_case получить куки

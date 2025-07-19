@@ -1,6 +1,8 @@
 import logging
 from datetime import date
 
+from PIL.ImageChops import offset
+
 from src.api.dependecy import DepPagination
 from src.exceptions.exсeptions import ObjectNotFoundException, HotelNotFoundException, HotelAlreadyExistsException, \
     ObjectAlreadyExistsException
@@ -14,18 +16,19 @@ class HotelService(BaseService):
             self,
             date_from: date,
             date_to: date,
-            pag: DepPagination,
+            page: int,
+            per_page: int,
             title: str | None = None,
             location: str | None = None,
 
     ):
-        check_data_from_after_date_to_http_exc(date_from=date_from, date_to=date_to)
-        per_page = pag.per_page or 3
-        offset = per_page * pag.page - per_page
-        limit = per_page
-        return await self.db.hotels.get_available_hotels(
+        offset, limit = self.get_pagination_with_check(page, per_page)
+        hotels = await self.db.hotels.get_available_hotels(
             title, location, offset, limit, date_from=date_from, date_to=date_to
         )
+        if not hotels:
+            raise HotelNotFoundException
+        return hotels
 
     async def add_hotel(self, hotel_data: HotelAdd ):
         try:

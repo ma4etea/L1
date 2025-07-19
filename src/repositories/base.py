@@ -1,7 +1,8 @@
 import logging
 from typing import Sequence
 
-from asyncpg import UniqueViolationError, DataError, PostgresSyntaxError, NotNullViolationError
+from asyncpg import UniqueViolationError, DataError, PostgresSyntaxError, NotNullViolationError, \
+    ForeignKeyViolationError
 from sqlalchemy.exc import IntegrityError, NoResultFound, DBAPIError
 from sqlalchemy.ext.asyncio import AsyncSession
 from pydantic import BaseModel as BaseSchema
@@ -10,7 +11,7 @@ from sqlalchemy import select, Insert, delete, update, Executable, func, Result
 
 from src.exceptions.exсeptions import ObjectNotFoundException, ToBigIdException, ObjectAlreadyExistsException, \
     UnexpectedResultFromDbException, StmtSyntaxErrorException, NotNullViolationException, OffsetToBigException, \
-    LimitToBigException
+    LimitToBigException, ObjectHaveForeignKeyException
 from src.exceptions.utils import is_raise
 from src.repositories.mappers.base import DataMapper
 from src.repositories.utils import sql_debag
@@ -86,9 +87,14 @@ class BaseRepository:
 
     async def delete(self, **filter_by):
         await self.get_one(**filter_by)
-        stmt = delete(self.model).filter_by(**filter_by)
-        logging.debug(sql_debag(stmt))
-        await self.session.execute(stmt)
+        try:
+            stmt = delete(self.model).filter_by(**filter_by)
+            logging.debug(sql_debag(stmt))
+            await self.session.execute(stmt)
+        except IntegrityError as exc:
+            is_raise(exc, ForeignKeyViolationError, ObjectHaveForeignKeyException,
+                     check_message_contains="violates foreign key constraint")
+            raise exc
 
     async def delete_bulk(self, *filter_, **filter_by):
         stmt = delete(self.model).filter(*filter_).filter_by(**filter_by)
@@ -120,11 +126,11 @@ class BaseRepository:
             raise ObjectNotFoundException
         except DBAPIError as exc:
             is_raise(exc, DataError, OffsetToBigException,
-                    check_message_contains=("value out of int64 range", "LIMIT", "OFFSET"))
+                     check_message_contains=("value out of int64 range", "LIMIT", "OFFSET"))
             is_raise(exc, DataError, LimitToBigException,
-                    check_message_contains=("value out of int64 range", "LIMIT"))
+                     check_message_contains=("value out of int64 range", "LIMIT"))
             is_raise(exc, DataError, ToBigIdException,
-                    check_message_contains=("value out of int32 range",))
+                     check_message_contains=("value out of int32 range",))
             raise exc
         except Exception as exc:
             logging.error(exc_log_string(exc))

@@ -1,3 +1,4 @@
+import logging
 from datetime import date
 
 from sqlalchemy import func, select
@@ -6,7 +7,7 @@ from src.models.hotels import HotelsOrm
 from src.models.rooms import RoomsOrm
 from src.repositories.base import BaseRepository
 from src.repositories.mappers.mappers import HotelDataMapper
-from src.repositories.utils import get_available_rooms_ids
+from src.repositories.utils import get_available_rooms_ids, sql_debag
 
 
 class HotelsRepository(BaseRepository):
@@ -33,7 +34,7 @@ class HotelsRepository(BaseRepository):
             .filter(
                 RoomsOrm.id.in_(
                     get_available_rooms_ids(
-                        offset=offset, limit=limit, date_from=date_from, date_to=date_to
+                        date_from=date_from, date_to=date_to
                     )
                 )
             )
@@ -41,6 +42,6 @@ class HotelsRepository(BaseRepository):
 
         hotels_ids = hotels_ids.filter(self.model.id == rooms.c.hotel_id)
 
-        # logging.debug(f"Запрос в базу: {sql_debag(stmt)}")
+        logging.debug(f"Запрос в базу: \n{sql_debag(hotels_ids)}")
 
-        return await self.get_all(None, None, HotelsOrm.id.in_(hotels_ids))
+        return await self.get_all(offset, limit, HotelsOrm.id.in_(hotels_ids))

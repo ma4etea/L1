@@ -14,7 +14,12 @@ from src.utils.logger_utils import exc_log_string
 router = APIRouter(prefix="/auth", tags=["Авторизация"])
 
 
-@router.post("/register")
+@router.post("/register", description=(
+        "- Регистрирует нового пользователя по email и паролю. \n"
+        "- Пароль должен соответствовать требованиям безопасности: \n"
+        "- от 8 до 50 символов, минимум одна заглавная буква, одна строчная, одна цифра и один специальный символ (!@#$%^&* и т.д.). \n"
+        "- В случае если пользователь уже существует — возвращается ошибка.\n"
+), )
 async def register_user(db: DepDB, data: UserReg):
     try:
         await AuthService(db).register_user(data)
@@ -46,9 +51,8 @@ async def get_me(db: DepDB, user_id: DepAccess):
 
 @router.post("/logout")
 async def logout(
-    response: Response,
-    _: DepAccess,  # new_case переменная мусорка по конвенции python
+        response: Response,
+        _: DepAccess,  # new_case переменная мусорка по конвенции python
 ):
     response.delete_cookie("access_token")
     return {"status": "ok"}
-
