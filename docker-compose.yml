@@ -7,8 +7,11 @@ services:
     container_name: 'app-cont'
     build:
       context: .
+    volumes:
+      - images_for_app:/src/static/images
 #    ports:
 #      - "8888:8000"
+
 
 
 
@@ -20,6 +23,8 @@ services:
     container_name: 'celery-worker-cont'
     build:
       context: .
+    volumes:
+      - images_for_app:/src/static/images
     command: [ "celery", "--app=src.celery_tasks.celery_app:celery_inst", "worker", "--loglevel", "INFO" ]
 
 
@@ -32,6 +37,8 @@ services:
     container_name: 'celery-beat-cont'
     build:
       context: .
+    volumes:
+      - images_for_app:/src/static/images
     command: [ "celery", "--app=src.celery_tasks.celery_app:celery_inst", "beat", "--loglevel", "INFO" ]
 
 
