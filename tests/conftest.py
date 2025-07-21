@@ -52,7 +52,7 @@ async def ac(create_table):
 async def register_user(create_table, ac):
     creds = {
         "email": "str@exampel.com",
-        "password": "str@exampel.com"
+        "password": "!Qwe1234"
     }
     response = await ac.post("/auth/register", json=creds)
     assert response.status_code == 200

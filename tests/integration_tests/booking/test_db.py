@@ -8,8 +8,8 @@ async def test_crud_booking(db):
     rooms = await db.rooms.get_all()
 
     booking = BookingToDB(
-        date_from=date(year=2025, month=7, day=5),
-        date_to=date(year=2025, month=7, day=3),
+        date_from=date(year=2026, month=7, day=3),
+        date_to=date(year=2026, month=7, day=5),
         user_id=users[0].id,
         room_id=rooms[0].id,
         price=1500
@@ -21,7 +21,7 @@ async def test_crud_booking(db):
     assert isinstance(booking_get, Booking)
     assert booking_get.id == new_model_data.id
 
-    booking.date_from = date(year=2025, month=7, day=9)
+    booking.date_from = date(year=2026, month=7, day=9)
     booking_edit = await db.bookings.edit(booking, id=new_model_data.id)
     assert isinstance(booking_edit, Booking)
     assert booking_edit.id == new_model_data.id

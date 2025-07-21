@@ -18,11 +18,11 @@ import pytest
 
 
 @pytest.mark.parametrize("creds, status_code", [
-    ({"email": "user@example.com", "password": "string"}, 200),
-    ({"email": "user@example.com", "password": "string"}, 409),
-    ({"email": "new-user@example.com", "password": "string"}, 200),
-    ({"email": "new-user@example", "password": "string"}, 422),
-    ({"email": "new-user", "password": "string"}, 422),
+    ({"email": "user@example.com", "password": "!Qwe1234"}, 200),
+    ({"email": "user@example.com", "password": "!Qwe1234"}, 409),
+    ({"email": "new-user@example.com", "password": "!Qwe1234"}, 200),
+    ({"email": "new-user@example", "password": "!Qwe1234"}, 422),
+    ({"email": "new-user", "password": "!Qwe1234"}, 422),
 ])
 async def test_auth(creds, status_code, ac):
     resp_reg = await ac.post("/auth/register", json=creds)

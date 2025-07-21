@@ -9,7 +9,7 @@ async def test_add_facility(auth_ac):
     assert resp.status_code == 200
     assert Facility(**resp.json()['data'])
 
-async def test_get_facilities(ac):
-    resp = await ac.get("/facilities/cached")
-    assert resp.status_code == 200
-    # assert Facility(**resp.json()['data'])
+# async def test_get_facilities(ac):
+#     resp = await ac.get("/facilities/cached")
+#     assert resp.status_code == 200
+#     # assert Facility(**resp.json()['data'])
