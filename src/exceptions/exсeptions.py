@@ -57,7 +57,7 @@ class ObjectNotFoundException(MyAppException):
     object_name: str = "Объект"
 
     def __init__(self, object_id: int | str | list = None):
-        msg = f"{self.object_name} не найден"
+        msg = f"{self.object_name} не найден(ы)"
         if object_id is not None:
             msg += f" (id: {object_id})"
         super().__init__(msg)
