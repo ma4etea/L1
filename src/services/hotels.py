@@ -5,7 +5,7 @@ from PIL.ImageChops import offset
 
 from src.api.dependecy import DepPagination
 from src.exceptions.exсeptions import ObjectNotFoundException, HotelNotFoundException, HotelAlreadyExistsException, \
-    ObjectAlreadyExistsException
+    ObjectAlreadyExistsException, ObjectHaveForeignKeyException, HotelHaveRoomException
 from src.exceptions.utils import check_data_from_after_date_to_http_exc
 from src.schemas.hotels import HotelAdd, HotelPatch, Hotel
 from src.services.base import BaseService
@@ -44,9 +44,12 @@ class HotelService(BaseService):
         except ObjectNotFoundException as exc:
             raise HotelNotFoundException from exc
 
-    async def delete_hotel(self, hotel_id: int):
+    async def remove_hotel(self, hotel_id: int):
         await self.check_hotel(hotel_id)
-        await self.db.hotels.delete(id=hotel_id)
+        try:
+            await self.db.hotels.delete(id=hotel_id)
+        except ObjectHaveForeignKeyException:
+            raise HotelHaveRoomException
         await self.db.commit()
 
     async def check_hotel(self, hotel_id):

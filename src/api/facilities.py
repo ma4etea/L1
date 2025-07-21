@@ -2,8 +2,9 @@ from fastapi import APIRouter, Body, Path
 
 from fastapi_cache.decorator import cache
 from src.api.dependecy import DepAccess, DepDB
-from src.api.http_exceptions.http_exeptions import FacilityAlreadyExistsHTTPException, FacilityNotFoundHTTPException
-from src.exceptions.exсeptions import FacilityAlreadyExistsException
+from src.api.http_exceptions.http_exeptions import FacilityAlreadyExistsHTTPException, FacilityNotFoundHTTPException, \
+    ToBigIdHTTPException
+from src.exceptions.exсeptions import FacilityAlreadyExistsException, FacilityNotFoundException, ToBigIdException
 from src.schemas.facilities import AddFacility
 from src.services.facility import FacilityService
 
@@ -60,10 +61,16 @@ async def get_facilities(db: DepDB):
     return {"status": "ok", "data": facilities}
 
 
-@router.get("")
+@router.get("", description="""
+Возвращает список всех удобств, доступных для бронирования.
+Так как список удобств изменяется редко, результат кэшируется на 60 секунд для снижения нагрузки на базу данных.
+""")
 @cache(expire=60)
 async def get_facilities(db: DepDB):
-    facilities = await FacilityService(db).get_facilities_cached()
+    try:
+        facilities = await FacilityService(db).get_facilities_cached()
+    except FacilityNotFoundException:
+        raise FacilityNotFoundHTTPException
     return {"status": "ok", "data": facilities}
 
 
@@ -75,8 +82,9 @@ async def update_facility(
         facility_id: int = Path(ge=1)):
     try:
         facility = await FacilityService(db).update_facility(data_facility, facility_id)
-    except :
+    except FacilityNotFoundException:
         raise FacilityNotFoundHTTPException
+    except ToBigIdException:
+        raise ToBigIdHTTPException
 
     return {"status": "ok", "data": facility}
-

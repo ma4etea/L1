@@ -5,10 +5,11 @@ from fastapi import Query, Body, Path, APIRouter
 from src.api.dependecy import DepPagination, DepDB, DepDateAvailable
 from src.exceptions.exсeptions import ToBigIdException, \
     HotelNotFoundException, InvalidDateAfterDate, HotelAlreadyExistsException, StmtSyntaxErrorException, \
-    NotNullViolationException, OffsetToBigException
+    NotNullViolationException, OffsetToBigException, HotelHaveRoomException
 from src.api.http_exceptions.http_exeptions import HotelNotFoundHTTPException, ToBigIdHTTPException, \
     InvalidDateAfterDateHTTPException, HotelAlreadyExistsHTTPException, StmtSyntaxErrorHTTPException, \
-    NotNullViolationHTTPException, ObjectNotFoundHTTPException, OffsetToBigHTTPException
+    NotNullViolationHTTPException, ObjectNotFoundHTTPException, OffsetToBigHTTPException, \
+    ObjectHaveForeignKeyHTTPException
 from src.schemas.hotels import HotelPatch, HotelAdd
 from src.services.hotels import HotelService
 
@@ -99,18 +100,23 @@ async def add_hotel(
 
 
 @router.delete("/{hotel_id}")
-async def delete_hotel(db: DepDB, hotel_id: int = Path()):
+async def remove_hotel(db: DepDB, hotel_id: int = Path()):
     try:
-        await HotelService(db).delete_hotel(hotel_id)
+        await HotelService(db).remove_hotel(hotel_id)
         return {"status": "OK"}
     except HotelNotFoundException:
         raise HotelNotFoundHTTPException
+    except HotelHaveRoomException as exc:
+        raise ObjectHaveForeignKeyHTTPException(exc)
     except ToBigIdException:
         raise ToBigIdHTTPException
 
 
 @router.patch("/{hotel_id}")
-async def edit_hotel(db: DepDB, hotel_id: int, hotel_data: HotelPatch):
+async def edit_hotel(db: DepDB, hotel_id: int,
+                     hotel_data: HotelPatch = Body(
+                         openapi_examples=openapi_hotel_examples
+                     ), ):
     try:
         hotel = await HotelService(db).edit_hotel(hotel_id, hotel_data, exclude_unset=True)
     except HotelNotFoundException:
@@ -132,7 +138,9 @@ async def edit_hotel(db: DepDB, hotel_id: int, hotel_data: HotelPatch):
 async def upd_hotel(
         db: DepDB,
         hotel_id: int,
-        hotel_data: HotelAdd,
+        hotel_data: HotelAdd= Body(
+            openapi_examples=openapi_hotel_examples
+        ),
 ):
     try:
         hotel = await HotelService(db).edit_hotel(hotel_id, hotel_data)

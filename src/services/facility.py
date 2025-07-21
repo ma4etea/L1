@@ -31,7 +31,10 @@ class FacilityService(BaseService):
         return facilities
 
     async def get_facilities_cached(self) -> list[Facility]:
-        return await self.db.facilities.get_all()
+        facilities: list[Facility] =  await self.db.facilities.get_all()
+        if not facilities:
+            raise FacilityNotFoundException
+        return facilities
 
     async def check_facilities(self, ids:list[int]):
         try:

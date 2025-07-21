@@ -169,7 +169,11 @@ class ObjectHaveForeignKeyException(MyAppException):
         super().__init__(msg)
 
 class RoomHaveBookingException(ObjectHaveForeignKeyException):
-    details = "Комната имеет бронирование"
+    details = "Невозможно удалить номер, так как он имеет бронирование"
+
+class HotelHaveRoomException(ObjectHaveForeignKeyException):
+    details = "Невозможно удалить отель, так как у него существуют номера."
+
 
 class ObjectInvalidForeignKeyException(MyAppException):
     details: str = "Объекты не связаны внешними ключами"
