@@ -11,4 +11,4 @@ deploy-job:
   stage: deploy
   environment: production
   script:
-    - docker campose up -d
+    - docker compose up -d
