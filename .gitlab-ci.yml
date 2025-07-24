@@ -22,17 +22,14 @@ build-job:
 #
 format-job:
   stage: lint
-  image: python:3.11.13
   script:
     - pip install ruff
-    - ruff format --check .
+    - docker run --rm --network booking-network booking-app-image:0.7 poetry run ruff format --check .
 
 lint-job:
   stage: lint
-  image: python:3.11.13
   script:
-    - pip install ruff
-    - ruff check .
+    - docker run --rm --network booking-network booking-app-image:0.7 poetry run ruff check .
 
 #typecheck-job:
 #  stage: typecheck
