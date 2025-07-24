@@ -1,0 +1,8 @@
+{
+  "include": ["src", "tests"],
+  "exclude": ["src/_cors_helper"],
+  "venvPath": ".",
+  "pythonVersion": "3.11.13",
+  "reportMissingImports": true,
+  "typeCheckingMode": "strict"
+}
