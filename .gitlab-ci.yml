@@ -22,8 +22,10 @@ build-job:
 #
 format-job:
   stage: format
+  image: python:3.11.13
   script:
-    - ruff fromat --check
+    - pip install ruff
+    - ruff format --check .
 #
 #typecheck-job:
 #  stage: typecheck
