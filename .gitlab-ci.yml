@@ -1,8 +1,8 @@
 stages:
   - build
-  - format
-#  - lint
-  - typecheck
+#  - format
+  - lint
+#  - typecheck
   - migrate
   - test
   - deploy
@@ -21,18 +21,18 @@ build-job:
 #    -
 #
 format-job:
-  stage: format
+  stage: lint
   image: python:3.11.13
   script:
     - pip install ruff
     - ruff format --check .
 
-#lint-job:
-#  stage: lint
-#  image: python:3.11.13
-#  script:
-#    - pip install ruff
-#    - ruff check .
+lint-job:
+  stage: lint
+  image: python:3.11.13
+  script:
+    - pip install ruff
+    - ruff check .
 
 typecheck-job:
   stage: typecheck
