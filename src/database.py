@@ -20,6 +20,7 @@ new_session_null_pool = async_sessionmaker(bind=engine_null_pool, expire_on_comm
 
 async def check_db():
     if settings.MODE in {"local", "prod", "dev"}:
+        logging.warning(f"{settings.DB_URL=}")
         try:
             async with new_session() as session:
                 await session.execute(text("SELECT 1"))

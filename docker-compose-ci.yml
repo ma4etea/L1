@@ -10,8 +10,6 @@ services:
 #      - "8888:8000"
 
 
-
-
   celery-worker:
     networks:
       - booking-network

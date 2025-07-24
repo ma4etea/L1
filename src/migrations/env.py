@@ -1,16 +1,19 @@
+import logging
 from logging.config import fileConfig
 
 import sys
 import os
 # Добавить родительскую директорию, чтобы модуль `src` был доступен
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
+from src.config import settings
+
+logging.warning(f"{settings.DB_URL=}")
 
 from sqlalchemy import engine_from_config
 from sqlalchemy import pool
 
 from alembic import context
 
-from src.config import settings
 from src.database import BaseModel
 
 # new_case: импортируется все модели, импорты указаны в src.models.__init__.py
