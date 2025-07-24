@@ -5,8 +5,7 @@ stages:
 build-job:
   stage: build
   before_script:
-    - cp ${ENV} .env
-    - cp ${ENV_DOCKER} .env.docker
+    - cp ${ENV_DOCKER} .env
     - cp ${ENV_TEST} .test.env
   script:
     - docker build -t booking-app-image:0.7 .
@@ -16,3 +15,4 @@ deploy-job:
   environment: production
   script:
     - docker compose --file docker-compose-ci.yml up -d
+    - docker exec docker nginx-booking -s reloud
