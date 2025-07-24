@@ -36,9 +36,8 @@ format-job:
 
 typecheck-job:
   stage: typecheck
-  image: python:3.11.13
+  image: booking-app-image:0.7
   script:
-    - pip install pyright
     - pyright
 #
 migrate-job:
