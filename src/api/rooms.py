@@ -133,11 +133,6 @@ async def create_room(
     }
 
 
-
-
-
-
-
 @router.delete("/{hotel_id}/rooms/{room_id}")
 async def remove_room(
     _: DepAccess,

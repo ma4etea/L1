@@ -3,7 +3,7 @@ stages:
   - format
   - lint
 #  - typecheck
-#  - migrate
+  - migrate
   - test
   - deploy
 
@@ -39,11 +39,10 @@ lint-job:
 #  script:
 #    -
 #
-#migrate-job:
-#  stage: migrate
-#  image: docker exec -rm booking-app-image:0.7
-#  script:
-#    -
+migrate-job:
+  stage: migrate
+  script:
+    - docker run --rm --network booking-network booking-app-image:0.7 poetry run alembic upgrade head
 
 test-job:
   stage: test
