@@ -1,5 +1,10 @@
 stages:
   - build
+#  - lint
+#  - format
+#  - typecheck
+#  - migrate
+  - test
   - deploy
 
 build-job:
@@ -9,6 +14,33 @@ build-job:
     - cp ${ENV_TEST} .test.env
   script:
     - docker build -t booking-app-image:0.7 .
+
+#lint-job:
+#  stage: lint
+#  script:
+#    -
+#
+#format-job:
+#  stage: format
+#  script:
+#    -
+#
+#typecheck-job:
+#  stage: typecheck
+#  script:
+#    -
+#
+#migrate-job:
+#  stage: migrate
+#  image: docker exec -rm booking-app-image:0.7
+#  script:
+#    -
+
+test-job:
+  stage: test
+  script:
+    - docker run --rm booking-app-image:0.7 poetry run pytest
+
 
 deploy-job:
   stage: deploy
