@@ -1,7 +1,7 @@
 stages:
   - build
 #  - lint
-#  - format
+  - format
 #  - typecheck
 #  - migrate
   - test
@@ -20,10 +20,10 @@ build-job:
 #  script:
 #    -
 #
-#format-job:
-#  stage: format
-#  script:
-#    -
+format-job:
+  stage: format
+  script:
+    - ruff fromat --check
 #
 #typecheck-job:
 #  stage: typecheck
