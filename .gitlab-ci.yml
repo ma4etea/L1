@@ -39,7 +39,7 @@ build-job:
 test-job:
   stage: test
   script:
-    - docker run --rm booking-app-image:0.7 poetry run pytest
+    - docker run --rm -network booking-network booking-app-image:0.7 poetry run pytest
 
 
 deploy-job:
