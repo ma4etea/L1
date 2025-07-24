@@ -15,4 +15,4 @@ deploy-job:
   environment: production
   script:
     - docker compose --file docker-compose-ci.yml up -d
-    - docker exec docker nginx-booking -s reloud
+    - docker exec nginx-booking -s reloud
