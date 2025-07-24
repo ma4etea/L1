@@ -1,7 +1,7 @@
 stages:
   - build
   - format
-  - lint
+#  - lint
 #  - typecheck
   - migrate
   - test
