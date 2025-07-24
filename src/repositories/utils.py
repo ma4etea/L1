@@ -9,11 +9,11 @@ from src.models.rooms import RoomsOrm
 
 
 def get_available_rooms_ids(
-        date_from: date,
-        date_to: date,
-        offset: int | None = None,
-        limit: int | None = None,
-        hotel_id: int = None,
+    date_from: date,
+    date_to: date,
+    offset: int | None = None,
+    limit: int | None = None,
+    hotel_id: int = None,
 ):
     """
     with rooms_booked_count as (
@@ -73,9 +73,9 @@ def get_available_rooms_ids(
 
 
 def check_rooms_available(
-        date_from: date,
-        date_to: date,
-        room_id: int,
+    date_from: date,
+    date_to: date,
+    room_id: int,
 ):
     """
     Проверяет, есть ли хотя бы одна доступная комната для бронирования по заданному `room_id`

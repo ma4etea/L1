@@ -13,12 +13,13 @@ def check_data_from_after_date_to_http_exc(date_from: date, date_to: date):
 
 T = TypeVar("T", bound=BaseException)
 
+
 def is_raise(
     exc: Exception,
     reason: Type[BaseException] | Tuple[Type[BaseException], ...],
     to_raise: Type[T],
     *,
-    check_message_contains: tuple[str, ...] | str | None = None
+    check_message_contains: tuple[str, ...] | str | None = None,
 ) -> None:
     """
     Проверяет, было ли исходное исключение (`exc`) вызвано ошибкой заданного типа (`reason`)
@@ -36,15 +37,15 @@ def is_raise(
         to_raise: Если условия совпадения выполнены.
     """
 
-
-
     if check_message_contains:
         if isinstance(check_message_contains, str):
             check_messages_ = {check_message_contains}
         elif isinstance(check_message_contains, tuple):
             check_messages_ = set(check_message_contains)
         else:
-            raise TypeError(f"Ожидаем str или последовательность [str], получил {type(check_message_contains)}")
+            raise TypeError(
+                f"Ожидаем str или последовательность [str], получил {type(check_message_contains)}"
+            )
         full_msg = str(exc).lower()
         # Проверяем, что все подстроки есть в сообщении (регистр не важен)
         if not all(sub.lower() in full_msg for sub in check_messages_):
@@ -63,7 +64,6 @@ def is_raise(
     if isinstance(orig, reason) or walk_causes(orig):
         logging.warning(f"Отловлено исключение: {exc_log_string(exc)}")
         raise to_raise() from exc
-
 
 
 # def is_raise(
@@ -147,20 +147,20 @@ def is_raise(
 #         raise to_raise() from exc
 
 
-    #
-    # # # new_case: Так можно безопасно доставать вложеные(обернутые ошибки)
-    # cause = getattr(exc.orig, "__cause__",
-    #                 None)  # new_case: безопасная проверка что атрибут есть ex.orig.__cause__
-    # if isinstance(exc.orig, UniqueViolationError) or isinstance(cause,
-    #                                                             UniqueViolationError):  # new_case: вместо cause можно ex.orig.__cause__ но это не безопасный доступ
-    #     raise ObjectAlreadyExistsException
-    #
-    # logging.error(f"Вывод exc: exc_log_string(exc)")
-    # logging.error("------------------------------------------------------")
-    # logging.error(f"Вывод exc.orig: {type(exc).__name__}: {exc.orig}")
-    # logging.error("------------------------------------------------------")
-    # logging.error(f"Вывод exc.__context__: {type(exc).__name__}: {exc.__context__}")
-    # logging.error("------------------------------------------------------")
-    # logging.error(f"Вывод exc.__cause__: {type(exc).__name__}: {exc.__cause__}")
-    # logging.error("------------------------------------------------------")
-    # logging.error(f"Вывод exc.orig.__cause__: {type(exc).__name__}: {exc.orig.__cause__}")
+#
+# # # new_case: Так можно безопасно доставать вложеные(обернутые ошибки)
+# cause = getattr(exc.orig, "__cause__",
+#                 None)  # new_case: безопасная проверка что атрибут есть ex.orig.__cause__
+# if isinstance(exc.orig, UniqueViolationError) or isinstance(cause,
+#                                                             UniqueViolationError):  # new_case: вместо cause можно ex.orig.__cause__ но это не безопасный доступ
+#     raise ObjectAlreadyExistsException
+#
+# logging.error(f"Вывод exc: exc_log_string(exc)")
+# logging.error("------------------------------------------------------")
+# logging.error(f"Вывод exc.orig: {type(exc).__name__}: {exc.orig}")
+# logging.error("------------------------------------------------------")
+# logging.error(f"Вывод exc.__context__: {type(exc).__name__}: {exc.__context__}")
+# logging.error("------------------------------------------------------")
+# logging.error(f"Вывод exc.__cause__: {type(exc).__name__}: {exc.__cause__}")
+# logging.error("------------------------------------------------------")
+# logging.error(f"Вывод exc.orig.__cause__: {type(exc).__name__}: {exc.orig.__cause__}")

@@ -40,6 +40,7 @@ class RoomDataMapper(DataMapper):
     model = RoomsOrm
     schema = Room
 
+
 class RoomWithDataMapper(DataMapper):
     model = RoomsOrm
     schema = RoomWith

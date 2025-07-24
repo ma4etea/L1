@@ -18,12 +18,12 @@ class BookingsRepository(BaseRepository):
     mapper = BookingDataMapper
 
     async def get_available_rooms(
-            self,
-            offset: int,
-            limit: int,
-            date_from: date,
-            date_to: date,
-            hotel_id: int = None,
+        self,
+        offset: int,
+        limit: int,
+        date_from: date,
+        date_to: date,
+        hotel_id: int = None,
     ) -> list[dict]:
         """
         with rooms_booked_count as (
@@ -140,7 +140,6 @@ class BookingsRepository(BaseRepository):
         return [self.mapper.to_domain(model) for model in res.scalars().all()]
 
     async def add_booking(self, data: BookingToDB):
-
         try:
             res = await self.session.execute(
                 check_rooms_available(
@@ -154,4 +153,3 @@ class BookingsRepository(BaseRepository):
             raise NoAvailableRoom
         schema = await self.add(data)
         return schema
-

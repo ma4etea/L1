@@ -3,6 +3,7 @@ from datetime import date
 from pydantic import BaseModel, model_validator, field_validator
 from fastapi import HTTPException
 
+
 class PatchValidatorMixin(BaseModel):
     """
     Миксин для Pydantic-моделей, предназначенных для PATCH-запросов.
@@ -70,10 +71,7 @@ class DateRangeValidatorMixin(BaseModel):
     @model_validator(mode="after")
     def validate_date_range(self):
         if self.date_from >= self.date_to:
-            raise HTTPException(
-                status_code=422,
-                detail="`date_from` должно быть меньше `date_to`"
-            )
+            raise HTTPException(status_code=422, detail="`date_from` должно быть меньше `date_to`")
         return self
 
 
@@ -99,6 +97,6 @@ class DateFromTodayOrLaterMixin(BaseModel):
         if v < today:
             raise HTTPException(
                 status_code=422,
-                detail=f"`date_from` не может быть в прошлом. Укажите сегодня или позже: {today.isoformat()}"
+                detail=f"`date_from` не может быть в прошлом. Укажите сегодня или позже: {today.isoformat()}",
             )
         return v

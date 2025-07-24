@@ -45,13 +45,12 @@ class RoomsFacilitiesRepository(BaseRepository):
                 )
                 await self.session.execute(add_ids_stmt)
 
-
     async def get_facilities_with_by_rooms_ids(self, room_ids) -> list[dict]:
         """
-            SELECT rf.room_id, f.*
-            FROM rooms_facilities rf
-            JOIN facilities f ON rf.facility_id = f.id
-            WHERE rf.room_id IN (1, 2, 3, 4);
+        SELECT rf.room_id, f.*
+        FROM rooms_facilities rf
+        JOIN facilities f ON rf.facility_id = f.id
+        WHERE rf.room_id IN (1, 2, 3, 4);
         """
         rf = self.model
         f = FacilitiesOrm
@@ -64,4 +63,4 @@ class RoomsFacilitiesRepository(BaseRepository):
         )
         res = await self.session.execute(query)
         rows = res.mappings().all()
-        return [dict(row) for row in  rows]
+        return [dict(row) for row in rows]

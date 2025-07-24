@@ -15,7 +15,7 @@ from httpx import ASGITransport, AsyncClient
 from src.config import settings
 from src.database import BaseModel, new_session_null_pool, engine, new_session
 from src.main import app
-from src.models import * # noqa
+from src.models import *  # noqa
 from src.schemas.hotels import HotelAdd
 from src.schemas.rooms import AddRoomToDb
 from src.utils.db_manager import DBManager
@@ -28,13 +28,16 @@ def check_env():
 
 @pytest.fixture(autouse=True, scope="session")
 async def create_table(check_env):
-    async with engine.begin() as conn:  # new_case: Важно что engine должен быть с параметром poolclass=NullPool
+    async with (
+        engine.begin() as conn
+    ):  # new_case: Важно что engine должен быть с параметром poolclass=NullPool
         await conn.run_sync(BaseModel.metadata.drop_all)
         await conn.run_sync(BaseModel.metadata.create_all)
 
 
 @pytest.fixture(
-    scope="function")  # new_case: "function" это область видимости это fixture вызывается каждый раз при использовании функции
+    scope="function"
+)  # new_case: "function" это область видимости это fixture вызывается каждый раз при использовании функции
 async def db(create_table):
     async with DBManager(session_factory=new_session) as db:
         yield db
@@ -42,18 +45,13 @@ async def db(create_table):
 
 @pytest.fixture(scope="session")  # new_case: "session" вызовется один раз на всю сессию
 async def ac(create_table):
-    async with AsyncClient(
-            transport=ASGITransport(app=app), base_url="http://test"
-    ) as ac:
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
         yield ac
 
 
 @pytest.fixture(autouse=True, scope="session")
 async def register_user(create_table, ac):
-    creds = {
-        "email": "str@exampel.com",
-        "password": "!Qwe1234"
-    }
+    creds = {"email": "str@exampel.com", "password": "!Qwe1234"}
     response = await ac.post("/auth/register", json=creds)
     assert response.status_code == 200
     return creds
@@ -82,6 +80,6 @@ async def auth_ac(register_user, ac):
     creds = register_user
     response = await ac.post("/auth/login", json=creds)
     assert response.status_code == 200
-    print(f'{ac.cookies =}')
+    print(f"{ac.cookies =}")
     assert ac.cookies["access_token"]
     yield ac

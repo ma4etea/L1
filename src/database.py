@@ -18,6 +18,7 @@ new_session = async_sessionmaker(bind=engine, expire_on_commit=False)
 engine_null_pool = create_async_engine(settings.DB_URL, poolclass=NullPool)
 new_session_null_pool = async_sessionmaker(bind=engine_null_pool, expire_on_commit=False)
 
+
 async def check_db():
     if settings.MODE in {"local", "prod", "dev"}:
         logging.warning(f"{settings.DB_URL=}")
@@ -27,7 +28,6 @@ async def check_db():
                 logging.info("Успешное подключение к PostgreSQL")
         except Exception as exc:
             logging.error(f"Ошибка подключения к PostgreSQL: {exc_log_string(exc)}")
-
 
 
 class BaseModel(DeclarativeBase):

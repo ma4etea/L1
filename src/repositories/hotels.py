@@ -31,13 +31,7 @@ class HotelsRepository(BaseRepository):
             select(RoomsOrm.hotel_id)
             .distinct()
             .select_from(RoomsOrm)
-            .filter(
-                RoomsOrm.id.in_(
-                    get_available_rooms_ids(
-                        date_from=date_from, date_to=date_to
-                    )
-                )
-            )
+            .filter(RoomsOrm.id.in_(get_available_rooms_ids(date_from=date_from, date_to=date_to)))
         )
 
         hotels_ids = hotels_ids.filter(self.model.id == rooms.c.hotel_id)

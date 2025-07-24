@@ -20,12 +20,12 @@ class RoomsRepository(BaseRepository):
     mapper = RoomDataMapper
 
     async def get_available_rooms_shymeyko(
-            self,
-            offset: int,
-            limit: int,
-            date_from: date,
-            date_to: date,
-            hotel_id: int,
+        self,
+        offset: int,
+        limit: int,
+        date_from: date,
+        date_to: date,
+        hotel_id: int,
     ):
         return await self.get_all(
             offset,
@@ -37,9 +37,9 @@ class RoomsRepository(BaseRepository):
         data_dict = data.model_dump(exclude_unset=exclude_unset, exclude={"facilities_ids"})
 
         if data_dict:
-            stmt = (update(self.model).filter_by(id=room_id, **filter_by).values(**data_dict)).returning(
-                self.model
-            )
+            stmt = (
+                update(self.model).filter_by(id=room_id, **filter_by).values(**data_dict)
+            ).returning(self.model)
         else:
             stmt = select(self.model).filter_by(id=room_id, **filter_by)
 
@@ -141,11 +141,10 @@ class RoomsRepository(BaseRepository):
             result = await self.session.execute(stmt)
             room_orm = result.scalar_one()
             return self.mapper.to_domain(room_orm)
-        except  NoResultFound:
+        except NoResultFound:
             raise ObjectNotFoundException
         except DBAPIError:
             raise ToBigIdException
-
 
     async def get_rooms_with(self, **filter_by):
         query = (

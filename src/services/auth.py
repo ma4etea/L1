@@ -6,8 +6,13 @@ from passlib.context import CryptContext
 import jwt
 
 from src.config import settings
-from src.exceptions.exсeptions import ObjectAlreadyExistsException, UserAlreadyExistsException, ObjectNotFoundException, \
-    UserNotFoundException, InvalidCredentialsException
+from src.exceptions.exсeptions import (
+    ObjectAlreadyExistsException,
+    UserAlreadyExistsException,
+    ObjectNotFoundException,
+    UserNotFoundException,
+    InvalidCredentialsException,
+)
 from src.schemas.users import UserReg, UserAdd, User
 from src.services.base import BaseService
 from src.utils.logger_utils import exc_log_string
@@ -17,11 +22,11 @@ class AuthService(BaseService):
     pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
     def create_access_token(
-            self,
-            expires_delta: timedelta | None = timedelta(
-                minutes=settings.JWT_ACCESS_TOKEN_EXPIRE_MINUTES
-            ),
-            **data,
+        self,
+        expires_delta: timedelta | None = timedelta(
+            minutes=settings.JWT_ACCESS_TOKEN_EXPIRE_MINUTES
+        ),
+        **data,
     ) -> str:
         to_encode = data.copy()
         expire = datetime.now(timezone.utc) + expires_delta
@@ -63,7 +68,7 @@ class AuthService(BaseService):
         except ObjectNotFoundException as exc:
             raise UserNotFoundException(object_id=str(data.email)) from exc
         if not self.verify_password(
-                plain_password=data.password, hashed_password=user.hashed_password
+            plain_password=data.password, hashed_password=user.hashed_password
         ):  # new_case проверка пароля
             raise InvalidCredentialsException
         return self.create_access_token(user_id=user.id)

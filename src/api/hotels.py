@@ -3,70 +3,72 @@ from datetime import date
 from fastapi import Query, Body, Path, APIRouter
 
 from src.api.dependecy import DepPagination, DepDB, DepDateAvailable
-from src.exceptions.exсeptions import ToBigIdException, \
-    HotelNotFoundException, InvalidDateAfterDate, HotelAlreadyExistsException, StmtSyntaxErrorException, \
-    NotNullViolationException, OffsetToBigException, HotelHaveRoomException
-from src.api.http_exceptions.http_exeptions import HotelNotFoundHTTPException, ToBigIdHTTPException, \
-    InvalidDateAfterDateHTTPException, HotelAlreadyExistsHTTPException, StmtSyntaxErrorHTTPException, \
-    NotNullViolationHTTPException, ObjectNotFoundHTTPException, OffsetToBigHTTPException, \
-    ObjectHaveForeignKeyHTTPException
+from src.exceptions.exсeptions import (
+    ToBigIdException,
+    HotelNotFoundException,
+    InvalidDateAfterDate,
+    HotelAlreadyExistsException,
+    StmtSyntaxErrorException,
+    NotNullViolationException,
+    OffsetToBigException,
+    HotelHaveRoomException,
+)
+from src.api.http_exceptions.http_exeptions import (
+    HotelNotFoundHTTPException,
+    ToBigIdHTTPException,
+    InvalidDateAfterDateHTTPException,
+    HotelAlreadyExistsHTTPException,
+    StmtSyntaxErrorHTTPException,
+    NotNullViolationHTTPException,
+    ObjectNotFoundHTTPException,
+    OffsetToBigHTTPException,
+    ObjectHaveForeignKeyHTTPException,
+)
 from src.schemas.hotels import HotelPatch, HotelAdd
 from src.services.hotels import HotelService
 
 openapi_hotel_examples = {
     "1": {
         "summary": "Дубай",
-        "value": {
-            "title": "Дубай мубай",
-            "location": "ОАЭ, г. Дубай, Шейх Заед Роуд 15"
-        },
+        "value": {"title": "Дубай мубай", "location": "ОАЭ, г. Дубай, Шейх Заед Роуд 15"},
     },
     "2": {
         "summary": "Сочи",
-        "value": {
-            "title": "Сочи мочи",
-            "location": "Россия, г. Сочи, ул. Победы 434"
-        },
+        "value": {"title": "Сочи мочи", "location": "Россия, г. Сочи, ул. Победы 434"},
     },
     "3": {
         "summary": "Париж",
-        "value": {
-            "title": "Париж Шанель",
-            "location": "Франция, Париж, ул. Риволи 12"
-        },
+        "value": {"title": "Париж Шанель", "location": "Франция, Париж, ул. Риволи 12"},
     },
     "4": {
         "summary": "Токио",
-        "value": {
-            "title": "Токийская роскошь",
-            "location": "Япония, Токио, Сибуя 7-3-1"
-        },
+        "value": {"title": "Токийская роскошь", "location": "Япония, Токио, Сибуя 7-3-1"},
     },
     "5": {
         "summary": "Алматы",
-        "value": {
-            "title": "Алма Гранд",
-            "location": "Казахстан, г. Алматы, пр. Абая 99"
-        },
+        "value": {"title": "Алма Гранд", "location": "Казахстан, г. Алматы, пр. Абая 99"},
     },
 }
 
 router = APIRouter(prefix="/hotels", tags=["Отели"])
 
 
-@router.get("", description=(
+@router.get(
+    "",
+    description=(
         "- Возвращает список отелей, в которых есть доступные номера в указанный период.\n"
         "- Пример дат: `date_from=2025-07-20`, `date_to=2025-07-27`.\n"
         "- Поддерживается фильтрация по названию (`title`) и локации (`location`).\n"
         "- Результат разбивается на страницы с использованием пагинации (`page`, `per_page`).\n"
         "- Если отелей не найдено — возвращается 404."
-), )
+    ),
+)
 async def get_available_hotels(
-        db: DepDB,
-        date_available_hotels: DepDateAvailable,
-        pag: DepPagination,
-        title: str | None = Query(None, description="Название отеля"),
-        location: str | None = Query(None, description="Локация"),
+    db: DepDB,
+    date_available_hotels: DepDateAvailable,
+    pag: DepPagination,
+    title: str | None = Query(None, description="Название отеля"),
+    location: str | None = Query(None, description="Локация"),
 ):
     try:
         hotels = await HotelService(db).get_available_hotels(
@@ -87,10 +89,8 @@ async def get_available_hotels(
 
 @router.post("")
 async def add_hotel(
-        db: DepDB,
-        hotel_data: HotelAdd = Body(
-            openapi_examples=openapi_hotel_examples
-        ),
+    db: DepDB,
+    hotel_data: HotelAdd = Body(openapi_examples=openapi_hotel_examples),
 ):
     try:
         hotel = await HotelService(db).add_hotel(hotel_data)
@@ -113,10 +113,11 @@ async def remove_hotel(db: DepDB, hotel_id: int = Path()):
 
 
 @router.patch("/{hotel_id}")
-async def edit_hotel(db: DepDB, hotel_id: int,
-                     hotel_data: HotelPatch = Body(
-                         openapi_examples=openapi_hotel_examples
-                     ), ):
+async def edit_hotel(
+    db: DepDB,
+    hotel_id: int,
+    hotel_data: HotelPatch = Body(openapi_examples=openapi_hotel_examples),
+):
     try:
         hotel = await HotelService(db).edit_hotel(hotel_id, hotel_data, exclude_unset=True)
     except HotelNotFoundException:
@@ -136,11 +137,9 @@ async def edit_hotel(db: DepDB, hotel_id: int,
     description="Только полное обновление",
 )
 async def upd_hotel(
-        db: DepDB,
-        hotel_id: int,
-        hotel_data: HotelAdd= Body(
-            openapi_examples=openapi_hotel_examples
-        ),
+    db: DepDB,
+    hotel_id: int,
+    hotel_data: HotelAdd = Body(openapi_examples=openapi_hotel_examples),
 ):
     try:
         hotel = await HotelService(db).edit_hotel(hotel_id, hotel_data)
@@ -153,8 +152,8 @@ async def upd_hotel(
 
 @router.get("/{hotel_id}")
 async def get_hotel(
-        db: DepDB,
-        hotel_id: int = Path(ge=1),
+    db: DepDB,
+    hotel_id: int = Path(ge=1),
 ):
     try:
         result = await HotelService(db).get_hotel(hotel_id)

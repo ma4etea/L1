@@ -26,7 +26,7 @@ class EditRoom(PatchValidatorMixin, BaseModel):
     description: Annotated[str | None, Field(None, min_length=2, max_length=100)]
     price: Annotated[int, Field(None, ge=0)]
     quantity: Annotated[int, Field(None, ge=1)]
-    facilities_ids: list[Annotated[int, Field(ge=1)]]= None
+    facilities_ids: list[Annotated[int, Field(ge=1)]] = None
 
 
 class AddRoomToDb(BaseRoom):
@@ -35,6 +35,7 @@ class AddRoomToDb(BaseRoom):
 
 class Room(BaseRoom):
     id: int
+
 
 class RoomWith(BaseRoom):
     facilities: list[Facility]

@@ -24,4 +24,3 @@ class AuthRepository(BaseRepository):
         except NoResultFound as exc:
             logging.error(exc_log_string(exc))
             raise ObjectNotFoundException from exc
-

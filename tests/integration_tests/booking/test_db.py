@@ -12,7 +12,7 @@ async def test_crud_booking(db):
         date_to=date(year=2026, month=7, day=5),
         user_id=users[0].id,
         room_id=rooms[0].id,
-        price=1500
+        price=1500,
     )
     new_model_data = await db.bookings.add(booking)
     assert isinstance(new_model_data, Booking)

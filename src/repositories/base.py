@@ -1,17 +1,30 @@
 import logging
 from typing import Sequence
 
-from asyncpg import UniqueViolationError, DataError, PostgresSyntaxError, NotNullViolationError, \
-    ForeignKeyViolationError
+from asyncpg import (
+    UniqueViolationError,
+    DataError,
+    PostgresSyntaxError,
+    NotNullViolationError,
+    ForeignKeyViolationError,
+)
 from sqlalchemy.exc import IntegrityError, NoResultFound, DBAPIError
 from sqlalchemy.ext.asyncio import AsyncSession
 from pydantic import BaseModel as BaseSchema
 from src.database import engine, BaseModel
 from sqlalchemy import select, Insert, delete, update, Executable, func, Result
 
-from src.exceptions.exсeptions import ObjectNotFoundException, ToBigIdException, ObjectAlreadyExistsException, \
-    UnexpectedResultFromDbException, StmtSyntaxErrorException, NotNullViolationException, OffsetToBigException, \
-    LimitToBigException, ObjectHaveForeignKeyException
+from src.exceptions.exсeptions import (
+    ObjectNotFoundException,
+    ToBigIdException,
+    ObjectAlreadyExistsException,
+    UnexpectedResultFromDbException,
+    StmtSyntaxErrorException,
+    NotNullViolationException,
+    OffsetToBigException,
+    LimitToBigException,
+    ObjectHaveForeignKeyException,
+)
 from src.exceptions.utils import is_raise
 from src.repositories.mappers.base import DataMapper
 from src.repositories.utils import sql_debag
@@ -52,8 +65,8 @@ class BaseRepository:
         return self.mapper.to_domain(model)
 
     async def add(
-            self,
-            data: BaseSchema,
+        self,
+        data: BaseSchema,
     ):
         stmt = Insert(self.model).values(**data.model_dump()).returning(self.model)
         try:
@@ -92,8 +105,12 @@ class BaseRepository:
             logging.debug(sql_debag(stmt))
             await self.session.execute(stmt)
         except IntegrityError as exc:
-            is_raise(exc, ForeignKeyViolationError, ObjectHaveForeignKeyException,
-                     check_message_contains="violates foreign key constraint")
+            is_raise(
+                exc,
+                ForeignKeyViolationError,
+                ObjectHaveForeignKeyException,
+                check_message_contains="violates foreign key constraint",
+            )
             raise exc
 
     async def delete_bulk(self, *filter_, **filter_by):
@@ -125,12 +142,24 @@ class BaseRepository:
         except NoResultFound:
             raise ObjectNotFoundException
         except DBAPIError as exc:
-            is_raise(exc, DataError, OffsetToBigException,
-                     check_message_contains=("value out of int64 range", "LIMIT", "OFFSET"))
-            is_raise(exc, DataError, LimitToBigException,
-                     check_message_contains=("value out of int64 range", "LIMIT"))
-            is_raise(exc, DataError, ToBigIdException,
-                     check_message_contains=("value out of int32 range",))
+            is_raise(
+                exc,
+                DataError,
+                OffsetToBigException,
+                check_message_contains=("value out of int64 range", "LIMIT", "OFFSET"),
+            )
+            is_raise(
+                exc,
+                DataError,
+                LimitToBigException,
+                check_message_contains=("value out of int64 range", "LIMIT"),
+            )
+            is_raise(
+                exc,
+                DataError,
+                ToBigIdException,
+                check_message_contains=("value out of int32 range",),
+            )
             raise exc
         except Exception as exc:
             logging.error(exc_log_string(exc))
@@ -138,10 +167,7 @@ class BaseRepository:
 
     async def get_total(self, *filter_, **filter_by) -> int:
         query = (
-            select(func.count("*"))
-            .select_from(self.model)
-            .filter(*filter_)
-            .filter_by(**filter_by)
+            select(func.count("*")).select_from(self.model).filter(*filter_).filter_by(**filter_by)
         )
         res = await self.session.execute(query)
         total = res.scalar_one()

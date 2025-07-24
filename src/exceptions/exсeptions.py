@@ -42,8 +42,10 @@
 #             details = f"{details} (id: {_id})"
 #         super().__init__(details, *args)
 
+
 class MyAppException(Exception):
     details = "Неизвестная ошибка"
+
     def __init__(self, details: str | None = None):
         if details:
             self.details = details
@@ -95,6 +97,7 @@ class FacilityNotFoundException(ObjectNotFoundException):
 
 
 # -----------------------------------------------------------------------
+
 
 class ObjectAlreadyExistsException(MyAppException):
     details = "Объект уже существует"
@@ -168,8 +171,10 @@ class ObjectHaveForeignKeyException(MyAppException):
             msg += f" (id: {object_id})"
         super().__init__(msg)
 
+
 class RoomHaveBookingException(ObjectHaveForeignKeyException):
     details = "Невозможно удалить номер, так как он имеет бронирование"
+
 
 class HotelHaveRoomException(ObjectHaveForeignKeyException):
     details = "Невозможно удалить отель, так как у него существуют номера."
@@ -185,6 +190,7 @@ class ObjectInvalidForeignKeyException(MyAppException):
         if object_ids is not None:
             msg += f" (ids: {object_ids})"
         super().__init__(msg)
+
 
 class RoomMissingToHotelException(ObjectInvalidForeignKeyException):
     details = "Номер отсутствует в отеле"

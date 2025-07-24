@@ -6,8 +6,11 @@ from fastapi import Query, Depends, Request, HTTPException
 from jwt import ExpiredSignatureError, InvalidSignatureError
 from pydantic import BaseModel
 
-from src.api.http_exceptions.http_exeptions import InvalidTokenHTTPException, IncorrectTokenHTTPException, \
-    ExpiredTokenHTTPException
+from src.api.http_exceptions.http_exeptions import (
+    InvalidTokenHTTPException,
+    IncorrectTokenHTTPException,
+    ExpiredTokenHTTPException,
+)
 from src.database import new_session
 from src.schemas.mixin.mixin import DateFromTodayOrLaterMixin, DateRangeValidatorMixin
 from src.services.auth import AuthService
@@ -22,6 +25,7 @@ class Pagination(BaseModel):
 
 DepPagination = Annotated[Pagination, Depends()]
 
+
 class DateBooking1(DateFromTodayOrLaterMixin, DateRangeValidatorMixin, BaseModel):
     date_from: Annotated[date, Query(description="Дата заезда, не раньше сегодняшнего дня")]
     date_to: Annotated[date, Query(description="Дата выезда, позже даты заезда ")]
@@ -29,8 +33,10 @@ class DateBooking1(DateFromTodayOrLaterMixin, DateRangeValidatorMixin, BaseModel
     class Config:
         title = "Период бронирования"
 
+
 DepDateBooking = Annotated[DateBooking1, Depends()]
 DepDateAvailable = Annotated[DateBooking1, Depends()]
+
 
 def get_access_token(request: Request) -> str:
     cookies = request.cookies  # new_case получить куки

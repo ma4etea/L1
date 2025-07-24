@@ -1,14 +1,14 @@
-
-
 import sys
 from contextlib import asynccontextmanager
 from pathlib import Path
 from fastapi_cache.backends.inmemory import InMemoryBackend
+
 sys.path.append(str(Path(__file__).parent.parent))
 from src.utils.logger_utils import exc_log_string
 
 
 from src.database import check_db
+
 # from src.database import *
 from src.config import settings
 from src.connectors.redis_conn import redis
@@ -42,7 +42,7 @@ async def lifespan(app: FastAPI):
     try:
         FastAPICache.init(
             RedisBackend(redis.redis_client), prefix="fastapi-cache"
-        ) # new_case: это позволяет над ручками вешать декоратор @cache это redis
+        )  # new_case: это позволяет над ручками вешать декоратор @cache это redis
         logging.info("FastAPICache успешно инициализирован с Redis клиентом")
     except Exception as exc:
         logging.error(f"Ошибка инициализации FastAPICache: {exc_log_string(exc)}")
@@ -69,7 +69,7 @@ app.include_router(images_router)
 
 
 if __name__ == "__main__":
-    uvicorn.run("main:app", host="0.0.0.0" , reload=True, workers=None)
+    uvicorn.run("main:app", host="0.0.0.0", reload=True, workers=None)
 
 # uvicorn main:app
 # fastapi dev main.py

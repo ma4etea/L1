@@ -17,21 +17,25 @@ class BookingService(BaseService):
 
         return booking
 
-    async def get_bookings(self, page: int, per_page: int)-> list[Booking]:
+    async def get_bookings(self, page: int, per_page: int) -> list[Booking]:
         total = await self.db.bookings.get_total()
         if total <= 0:
             raise BookingsNotFoundException
-        offset, limit = self.get_pagination_with_check(page=page, per_page=per_page, check_total=total)
+        offset, limit = self.get_pagination_with_check(
+            page=page, per_page=per_page, check_total=total
+        )
         bookings = await self.db.bookings.get_all(offset=offset, limit=limit)
         if not bookings:
             raise BookingsNotFoundException
         return bookings
 
-    async def get_my_bookings(self, user_id: int, page: int, per_page: int)-> list[Booking]:
+    async def get_my_bookings(self, user_id: int, page: int, per_page: int) -> list[Booking]:
         total = await self.db.bookings.get_total(user_id=user_id)
         if total <= 0:
             raise BookingsNotFoundException
-        offset, limit = self.get_pagination_with_check(page=page, per_page=per_page, check_total=total)
+        offset, limit = self.get_pagination_with_check(
+            page=page, per_page=per_page, check_total=total
+        )
         bookings = await self.db.bookings.get_all(user_id=user_id, offset=offset, limit=limit)
         if not bookings:
             raise BookingsNotFoundException

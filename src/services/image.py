@@ -6,4 +6,3 @@ class ImageService(BaseService):
     def save_resized_images(self, path: str):
         # todo По правильному нужно сделать адаптер между сервис и celery
         save_resized_images.delay(path)  # new_case: задача для celery создает процесс
-

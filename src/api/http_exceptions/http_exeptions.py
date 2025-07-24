@@ -13,8 +13,8 @@ class MyAppHTTPException(HTTPException):
         super().__init__(status_code=status_code, detail=detail)
 
 
+# ------------------------------------------------------------------------------
 
-#------------------------------------------------------------------------------
 
 class HotelNotFoundHTTPException(MyAppHTTPException):
     status_code = 404
@@ -30,6 +30,7 @@ class RoomsNotFoundHTTPException(MyAppHTTPException):
     status_code = 404
     details = "Номера не найдены"
 
+
 class UserNotFoundHTTPException(MyAppHTTPException):
     status_code = 404
     details = "Пользователь не найден"
@@ -38,6 +39,7 @@ class UserNotFoundHTTPException(MyAppHTTPException):
 class BookingNotFoundHTTPException(MyAppHTTPException):
     status_code = 404
     details = "Бронирование не найдено"
+
 
 class BookingsNotFoundHTTPException(MyAppHTTPException):
     status_code = 404
@@ -56,80 +58,102 @@ class FacilitiesNotFoundHTTPException(MyAppHTTPException):
     def __init__(self, detail: str = "Удобства не найдены"):
         if detail:
             self.detail = detail
+
     status_code = 404
     details = "Удобство не найдено"
+
 
 class PageNotFoundHTTPException(MyAppHTTPException):
     def __init__(self, detail: str = "Страница не доступна"):
         if detail:
             self.detail = detail
+
     status_code = 404
     details = "Страница не доступна"
+
 
 class FacilityNotFoundHTTPException(MyAppHTTPException):
     status_code = 404
     details = "Удобство не найдено"
 
-#------------------------------------------------------------------------------
+
+# ------------------------------------------------------------------------------
 class UserAlreadyExistsHTTPException(MyAppHTTPException):
     status_code = 409
     details = "Пользователь уже существует"
+
 
 class HotelAlreadyExistsHTTPException(MyAppHTTPException):
     status_code = 409
     details = "Отель уже существует"
 
+
 class FacilityAlreadyExistsHTTPException(MyAppHTTPException):
     status_code = 409
     details = "Удобство уже существует"
-#------------------------------------------------------------------------------
+
+
+# ------------------------------------------------------------------------------
+
 
 class ToBigIdHTTPException(MyAppHTTPException):
     def __init__(self, detail: str = "ИД слишком большой"):
         if detail:
             self.detail = detail
+
     status_code = 400
     details = "ИД слишком большой"
+
 
 class InvalidCredentialsHTTPException(MyAppHTTPException):
     status_code = 401
     details = "Неверные логин и/или пароль"
 
+
 class NoAvailableRoomHTTPException(MyAppHTTPException):
     status_code = 409
     details = "Нет доступного номера для бронирования"
+
 
 class InvalidDateAfterDateHTTPException(MyAppHTTPException):
     status_code = 422
     details = "Дата заезда должна быть раньше выезда"
 
+
 class InvalidTokenHTTPException(MyAppHTTPException):
     status_code = 401
     details = "Токен отсутствует"
+
 
 class IncorrectTokenHTTPException(MyAppHTTPException):
     status_code = 401
     details = "Неверный токен"
 
+
 class ExpiredTokenHTTPException(MyAppHTTPException):
     status_code = 401
     details = "Токен истек"
+
 
 class StmtSyntaxErrorHTTPException(MyAppHTTPException):
     status_code = 400
     details = "Ошибка запроса"
 
+
 class NotNullViolationHTTPException(MyAppHTTPException):
     status_code = 400
     details = "Значение не может быть null"
+
 
 class OffsetToBigHTTPException(MyAppHTTPException):
     status_code = 422
     details = "Превышено максимальное значение page"
 
+
 class LimitToBigHTTPException(MyAppHTTPException):
     status_code = 422
     details = "Превышено максимальное значение per_page"
+
 
 class InvalidPaginationHTTPException(MyAppHTTPException):
     status_code = 422
@@ -142,4 +166,3 @@ class ObjectHaveForeignKeyHTTPException(MyAppHTTPException):
     def __init__(self, exc: ObjectHaveForeignKeyException = None):
         detail = exc.details if exc else self.details
         super().__init__(status_code=409, detail=detail)
-

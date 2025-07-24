@@ -14,16 +14,20 @@
 4. POST /auth/logout
    - Проверить, что cookie с токеном удалено (пользователь разлогинен).
 """
+
 import pytest
 
 
-@pytest.mark.parametrize("creds, status_code", [
-    ({"email": "user@example.com", "password": "!Qwe1234"}, 200),
-    ({"email": "user@example.com", "password": "!Qwe1234"}, 409),
-    ({"email": "new-user@example.com", "password": "!Qwe1234"}, 200),
-    ({"email": "new-user@example", "password": "!Qwe1234"}, 422),
-    ({"email": "new-user", "password": "!Qwe1234"}, 422),
-])
+@pytest.mark.parametrize(
+    "creds, status_code",
+    [
+        ({"email": "user@example.com", "password": "!Qwe1234"}, 200),
+        ({"email": "user@example.com", "password": "!Qwe1234"}, 409),
+        ({"email": "new-user@example.com", "password": "!Qwe1234"}, 200),
+        ({"email": "new-user@example", "password": "!Qwe1234"}, 422),
+        ({"email": "new-user", "password": "!Qwe1234"}, 422),
+    ],
+)
 async def test_auth(creds, status_code, ac):
     resp_reg = await ac.post("/auth/register", json=creds)
     assert resp_reg.status_code == status_code
@@ -34,7 +38,9 @@ async def test_auth(creds, status_code, ac):
         assert resp_login.status_code == 200
         assert ac.cookies
         assert "access_token" in resp_login.json()
-        assert set(resp_login.json()) == {"access_token",}  # new_case: Супер кейс как убедится что только определенные ключи есть в словаре
+        assert set(resp_login.json()) == {
+            "access_token",
+        }  # new_case: Супер кейс как убедится что только определенные ключи есть в словаре
 
         resp_me = await ac.get("/auth/me")
         assert resp_me.status_code == 200

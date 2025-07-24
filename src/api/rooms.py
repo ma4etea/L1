@@ -4,13 +4,26 @@ from typing import Annotated
 
 from fastapi import APIRouter, Path, Body
 from src.api.dependecy import DepAccess, DepDB
-from src.exceptions.exсeptions import ObjectNotFoundException, ToBigIdException, RoomNotFoundException, \
-    HotelNotFoundException, FacilityNotFoundException, FacilityToBigIdException, RoomHaveBookingException, \
-    RoomMissingToHotelException
-from src.api.http_exceptions.http_exeptions import HotelNotFoundHTTPException, RoomNotFoundHTTPException, \
-    ToBigIdHTTPException, \
-    FacilityNotFoundHTTPException, RoomsNotFoundHTTPException, FacilitiesNotFoundHTTPException, \
-    ObjectNotFoundHTTPException, ObjectHaveForeignKeyHTTPException
+from src.exceptions.exсeptions import (
+    ObjectNotFoundException,
+    ToBigIdException,
+    RoomNotFoundException,
+    HotelNotFoundException,
+    FacilityNotFoundException,
+    FacilityToBigIdException,
+    RoomHaveBookingException,
+    RoomMissingToHotelException,
+)
+from src.api.http_exceptions.http_exeptions import (
+    HotelNotFoundHTTPException,
+    RoomNotFoundHTTPException,
+    ToBigIdHTTPException,
+    FacilityNotFoundHTTPException,
+    RoomsNotFoundHTTPException,
+    FacilitiesNotFoundHTTPException,
+    ObjectNotFoundHTTPException,
+    ObjectHaveForeignKeyHTTPException,
+)
 from src.schemas.facilities import AddRoomsFacilities
 from src.schemas.rooms import AddRoom, AddRoomToDb, EditRoom
 from src.services.room import RoomService
@@ -23,7 +36,7 @@ openapi_room_examples = {
             "description": "С видом на бархан",
             "price": 1300,
             "quantity": 5,
-            "facilities_ids": [1]
+            "facilities_ids": [1],
         },
     },
     "2": {
@@ -33,7 +46,7 @@ openapi_room_examples = {
             "description": "Уютный номер с двуспальной кроватью",
             "price": 2200,
             "quantity": 8,
-            "facilities_ids": [1, 2]
+            "facilities_ids": [1, 2],
         },
     },
     "3": {
@@ -43,7 +56,7 @@ openapi_room_examples = {
             "description": "Просторный номер с двумя спальнями",
             "price": 3500,
             "quantity": 3,
-            "facilities_ids": [1, 2, 4]
+            "facilities_ids": [1, 2, 4],
         },
     },
     "4": {
@@ -53,7 +66,7 @@ openapi_room_examples = {
             "description": "Роскошный номер с джакузи и балконом",
             "price": 4800,
             "quantity": 2,
-            "facilities_ids": [1, 2, 3, 4]
+            "facilities_ids": [1, 2, 3, 4],
         },
     },
     "5": {
@@ -63,7 +76,7 @@ openapi_room_examples = {
             "description": "С видом на море",
             "price": 5500,
             "quantity": 1,
-            "facilities_ids": [1, 2, 3, 4, 5]
+            "facilities_ids": [1, 2, 3, 4, 5],
         },
     },
 }
@@ -87,10 +100,10 @@ async def get_rooms(_: DepAccess, db: DepDB, hotel_id: Annotated[int, Path(ge=1)
 
 @router.get("/{hotel_id}/rooms/{room_id}")
 async def get_room(
-        _: DepAccess,
-        db: DepDB,
-        hotel_id: int = Path(ge=1),
-        room_id: int = Path(ge=1),
+    _: DepAccess,
+    db: DepDB,
+    hotel_id: int = Path(ge=1),
+    room_id: int = Path(ge=1),
 ):
     try:
         room = await RoomService(db).get_room(hotel_id, room_id)
@@ -103,9 +116,10 @@ async def get_room(
 
 @router.post("/{hotel_id}/rooms")
 async def create_room(
-        db: DepDB,
-        room_data: AddRoom = Body(openapi_examples=openapi_room_examples),
-        hotel_id: int = Path(ge=1)):
+    db: DepDB,
+    room_data: AddRoom = Body(openapi_examples=openapi_room_examples),
+    hotel_id: int = Path(ge=1),
+):
     try:
         room_with = await RoomService(db).create_room(hotel_id, room_data)
     except (FacilityNotFoundException, HotelNotFoundException) as exc:
@@ -121,10 +135,10 @@ async def create_room(
 
 @router.delete("/{hotel_id}/rooms/{room_id}")
 async def remove_room(
-        _: DepAccess,
-        db: DepDB,
-        hotel_id: int = Path(ge=1),
-        room_id: int = Path(ge=1),
+    _: DepAccess,
+    db: DepDB,
+    hotel_id: int = Path(ge=1),
+    room_id: int = Path(ge=1),
 ):
     try:
         await RoomService(db).remove_room(hotel_id, room_id)
@@ -139,16 +153,20 @@ async def remove_room(
 
 @router.put("/{hotel_id}/rooms/{room_id}")
 async def update_room(
-        db: DepDB,
-        _: DepAccess,
-        room_data: AddRoom = Body(openapi_examples=openapi_room_examples),
-        hotel_id: int = Path(ge=1),
-        room_id: int = Path(ge=1),
+    db: DepDB,
+    _: DepAccess,
+    room_data: AddRoom = Body(openapi_examples=openapi_room_examples),
+    hotel_id: int = Path(ge=1),
+    room_id: int = Path(ge=1),
 ):
     try:
         room_with = await RoomService(db).update_room(room_data, hotel_id=hotel_id, room_id=room_id)
-    except (RoomNotFoundException, HotelNotFoundException, FacilityNotFoundException,
-            RoomMissingToHotelException) as exc:
+    except (
+        RoomNotFoundException,
+        HotelNotFoundException,
+        FacilityNotFoundException,
+        RoomMissingToHotelException,
+    ) as exc:
         raise ObjectNotFoundHTTPException(exc)
     except ToBigIdException:
         raise ToBigIdHTTPException
@@ -156,24 +174,31 @@ async def update_room(
     return {"status": "OK", "data": room_with}
 
 
-@router.patch("/{hotel_id}/rooms/{room_id}", description=(
+@router.patch(
+    "/{hotel_id}/rooms/{room_id}",
+    description=(
         "- Изменяет параметры комнаты в указанном отеле.\n"
         "- Обновление происходит частично: можно передать одно или несколько полей.\n"
         "- Если не передано ни одного поля — вернётся ошибка 422.\n"
         "- Если отель, комната или удобства не найдены, также будет ошибка.\n"
         "- Идентификаторы `hotel_id` и `room_id` должны быть положительными числами (≥1)."
-), )
+    ),
+)
 async def edit_room(
-        _: DepAccess,
-        db: DepDB,
-        room_data: EditRoom = Body(openapi_examples=openapi_room_examples),
-        hotel_id: int = Path(ge=1),
-        room_id: int = Path(ge=1),
+    _: DepAccess,
+    db: DepDB,
+    room_data: EditRoom = Body(openapi_examples=openapi_room_examples),
+    hotel_id: int = Path(ge=1),
+    room_id: int = Path(ge=1),
 ):
     try:
         room_with = await RoomService(db).edit_room(room_data, hotel_id=hotel_id, room_id=room_id)
-    except (RoomNotFoundException, HotelNotFoundException, FacilityNotFoundException,
-            RoomMissingToHotelException) as exc:
+    except (
+        RoomNotFoundException,
+        HotelNotFoundException,
+        FacilityNotFoundException,
+        RoomMissingToHotelException,
+    ) as exc:
         raise ObjectNotFoundHTTPException(exc)
     except ToBigIdException:
         raise ToBigIdHTTPException
@@ -182,11 +207,11 @@ async def edit_room(
 
 # @router.put("/{hotel_id}/rooms_shymeiko/{room_id}")
 async def update_room_shymeiko(
-        db: DepDB,
-        _: DepAccess,
-        room_data: AddRoom,
-        hotel_id: int = Path(ge=1),
-        room_id: int = Path(ge=1),
+    db: DepDB,
+    _: DepAccess,
+    room_data: AddRoom,
+    hotel_id: int = Path(ge=1),
+    room_id: int = Path(ge=1),
 ):
     start_data = datetime.now()
     if room_data.facilities_ids is not None:
@@ -203,11 +228,11 @@ async def update_room_shymeiko(
 
 # @router.patch("/{hotel_id}/rooms_shymeiko/{room_id}")
 async def edit_room_shymeiko(
-        _: DepAccess,
-        db: DepDB,
-        room_data: EditRoom,
-        hotel_id: int = Path(ge=1),
-        room_id: int = Path(ge=1),
+    _: DepAccess,
+    db: DepDB,
+    room_data: EditRoom,
+    hotel_id: int = Path(ge=1),
+    room_id: int = Path(ge=1),
 ):
     start_data = datetime.now()
     if room_data.facilities_ids is not None:
