@@ -1,9 +1,7 @@
 import logging
 from datetime import date
 
-from PIL.ImageChops import offset
 
-from src.api.dependecy import DepPagination
 from src.exceptions.exсeptions import (
     ObjectNotFoundException,
     HotelNotFoundException,
@@ -12,7 +10,6 @@ from src.exceptions.exсeptions import (
     ObjectHaveForeignKeyException,
     HotelHaveRoomException,
 )
-from src.exceptions.utils import check_data_from_after_date_to_http_exc
 from src.schemas.hotels import HotelAdd, HotelPatch, Hotel
 from src.services.base import BaseService
 

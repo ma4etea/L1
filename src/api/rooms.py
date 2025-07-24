@@ -1,11 +1,9 @@
-import logging
 from datetime import datetime
 from typing import Annotated
 
 from fastapi import APIRouter, Path, Body
 from src.api.dependecy import DepAccess, DepDB
 from src.exceptions.exсeptions import (
-    ObjectNotFoundException,
     ToBigIdException,
     RoomNotFoundException,
     HotelNotFoundException,
@@ -15,17 +13,11 @@ from src.exceptions.exсeptions import (
     RoomMissingToHotelException,
 )
 from src.api.http_exceptions.http_exeptions import (
-    HotelNotFoundHTTPException,
-    RoomNotFoundHTTPException,
     ToBigIdHTTPException,
-    FacilityNotFoundHTTPException,
-    RoomsNotFoundHTTPException,
-    FacilitiesNotFoundHTTPException,
     ObjectNotFoundHTTPException,
     ObjectHaveForeignKeyHTTPException,
 )
-from src.schemas.facilities import AddRoomsFacilities
-from src.schemas.rooms import AddRoom, AddRoomToDb, EditRoom
+from src.schemas.rooms import AddRoom, EditRoom
 from src.services.room import RoomService
 
 openapi_room_examples = {

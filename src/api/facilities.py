@@ -54,10 +54,10 @@ async def create_facility(
     return {"status": "ok", "data": facility}
 
 
-# @router.get("")
-async def get_facilities(db: DepDB):
-    facilities = await FacilityService(db).get_facilities()
-    return {"status": "ok", "data": facilities}
+# # @router.get("")
+# async def get_facilities(db: DepDB):
+#     facilities = await FacilityService(db).get_facilities()
+#     return {"status": "ok", "data": facilities}
 
 
 @router.get(

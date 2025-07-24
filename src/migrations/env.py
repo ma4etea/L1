@@ -10,12 +10,12 @@ from src.config import settings
 
 logging.warning(f"{settings.DB_URL=}")
 
-from sqlalchemy import engine_from_config
-from sqlalchemy import pool
+from sqlalchemy import engine_from_config # noqa E402
+from sqlalchemy import pool # noqa E402
 
-from alembic import context
+from alembic import context # noqa E402
 
-from src.database import BaseModel
+from src.database import BaseModel # noqa E402
 
 # new_case: импортируется все модели, импорты указаны в src.models.__init__.py
 from src.models import *  # noqa

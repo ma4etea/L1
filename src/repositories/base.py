@@ -11,14 +11,13 @@ from asyncpg import (
 from sqlalchemy.exc import IntegrityError, NoResultFound, DBAPIError
 from sqlalchemy.ext.asyncio import AsyncSession
 from pydantic import BaseModel as BaseSchema
-from src.database import engine, BaseModel
+from src.database import BaseModel
 from sqlalchemy import select, Insert, delete, update, Executable, func, Result
 
 from src.exceptions.exсeptions import (
     ObjectNotFoundException,
     ToBigIdException,
     ObjectAlreadyExistsException,
-    UnexpectedResultFromDbException,
     StmtSyntaxErrorException,
     NotNullViolationException,
     OffsetToBigException,
@@ -125,7 +124,7 @@ class BaseRepository:
         except NoResultFound:
             raise ObjectNotFoundException
         except DBAPIError as exc:
-            logging.warning(f"Поймана ошибка в: DBAPIError")
+            logging.warning("Поймана ошибка в: DBAPIError")
             is_raise(exc=exc, reason=DataError, to_raise=ToBigIdException)
             is_raise(exc=exc, reason=PostgresSyntaxError, to_raise=StmtSyntaxErrorException)
             is_raise(exc=exc, reason=NotNullViolationError, to_raise=NotNullViolationException)

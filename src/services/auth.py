@@ -1,7 +1,5 @@
-import logging
 from datetime import timedelta, datetime, timezone
 
-from fastapi import HTTPException
 from passlib.context import CryptContext
 import jwt
 
@@ -15,7 +13,6 @@ from src.exceptions.exсeptions import (
 )
 from src.schemas.users import UserReg, UserAdd, User
 from src.services.base import BaseService
-from src.utils.logger_utils import exc_log_string
 
 
 class AuthService(BaseService):

@@ -3,10 +3,9 @@ from datetime import date
 
 from pydantic import BaseModel as BaseSchema
 from sqlalchemy import select, delete, literal, union_all, insert, update
-from sqlalchemy.exc import NoResultFound, DBAPIError, IntegrityError
+from sqlalchemy.exc import NoResultFound, DBAPIError
 from sqlalchemy.orm import selectinload, joinedload
 
-from src.database import engine
 from src.exceptions.exсeptions import ObjectNotFoundException, ToBigIdException
 from src.models.facilities import RoomsFacilitiesORM, FacilitiesOrm
 from src.models.rooms import RoomsOrm

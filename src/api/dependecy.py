@@ -2,7 +2,7 @@ import logging
 from datetime import date
 from typing import Annotated
 
-from fastapi import Query, Depends, Request, HTTPException
+from fastapi import Query, Depends, Request
 from jwt import ExpiredSignatureError, InvalidSignatureError
 from pydantic import BaseModel
 

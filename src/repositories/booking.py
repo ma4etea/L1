@@ -2,7 +2,6 @@ import logging
 from datetime import date
 from sqlalchemy import select, func
 from sqlalchemy.exc import DBAPIError
-from sqlalchemy.orm import selectinload
 
 from src.exceptions.exсeptions import NoAvailableRoom
 from src.models.bookings import BookingsOrm
@@ -10,7 +9,7 @@ from src.models.rooms import RoomsOrm
 from src.repositories.base import BaseRepository
 from src.repositories.mappers.mappers import BookingDataMapper
 from src.repositories.utils import check_rooms_available, sql_debag
-from src.schemas.booking import RoomsAvailable, BookingToDB
+from src.schemas.booking import BookingToDB
 
 
 class BookingsRepository(BaseRepository):

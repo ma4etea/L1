@@ -1,7 +1,6 @@
 from datetime import date
-from typing import Annotated
 
-from fastapi import APIRouter, Query, Depends
+from fastapi import APIRouter, Query
 
 from src.api.dependecy import DepAccess, DepDB, DepPagination, DepDateBooking
 from src.exceptions.exсeptions import (
@@ -24,14 +23,9 @@ from src.api.http_exceptions.http_exeptions import (
     InvalidDateAfterDateHTTPException,
     OffsetToBigHTTPException,
     LimitToBigHTTPException,
-    BookingsNotFoundHTTPException,
-    PageNotFoundHTTPException,
     InvalidPaginationHTTPException,
-    HotelNotFoundHTTPException,
-    RoomsNotFoundHTTPException,
     ObjectNotFoundHTTPException,
 )
-from src.schemas.base import DateBooking
 from src.schemas.booking import BookingAdd
 from src.services.booking import BookingService
 from src.services.room import RoomService

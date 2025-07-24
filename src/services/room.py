@@ -1,7 +1,6 @@
 from collections import defaultdict
 from datetime import date
 
-from fastapi import HTTPException
 
 from src.api.dependecy import DepPagination
 from src.exceptions.exсeptions import (

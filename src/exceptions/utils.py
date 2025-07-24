@@ -1,6 +1,6 @@
 import logging
 from datetime import date
-from typing import Type, Tuple, TypeVar, Sequence
+from typing import Type, Tuple, TypeVar
 
 from src.exceptions.exсeptions import InvalidDateAfterDate
 from src.utils.logger_utils import exc_log_string

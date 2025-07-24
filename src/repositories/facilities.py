@@ -1,5 +1,4 @@
 from sqlalchemy import select, delete, insert
-from sqlalchemy.orm import joinedload
 
 from src.models.facilities import FacilitiesOrm, RoomsFacilitiesORM
 from src.repositories.base import BaseRepository

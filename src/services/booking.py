@@ -1,7 +1,6 @@
-import math
 
-from src.api.dependecy import DepAccess, DepPagination
-from src.exceptions.exсeptions import BookingsNotFoundException, PageNotFoundException
+from src.api.dependecy import DepAccess
+from src.exceptions.exсeptions import BookingsNotFoundException
 from src.schemas.booking import BookingAdd, Booking, BookingToDB
 from src.services.base import BaseService
 from src.services.room import RoomService

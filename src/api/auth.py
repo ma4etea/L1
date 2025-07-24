@@ -7,7 +7,6 @@ from src.exceptions.exсeptions import (
     UserAlreadyExistsException,
     UserNotFoundException,
     InvalidCredentialsException,
-    ObjectNotFoundException,
 )
 from src.api.http_exceptions.http_exeptions import (
     UserAlreadyExistsHTTPException,
