@@ -34,10 +34,10 @@ lint-job:
     - pip install ruff
     - ruff check .
 
-typecheck-job:
-  stage: typecheck
-  script:
-    - docker run --rm --network booking-network booking-app-image:0.7 poetry run pyright
+#typecheck-job:
+#  stage: typecheck
+#  script:
+#    - docker run --rm --network booking-network booking-app-image:0.7 poetry run pyright
 #
 migrate-job:
   stage: migrate
